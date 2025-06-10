@@ -62,32 +62,13 @@ class DashboardViewExtension extends Minz_Extension {
         $this->registerTranslates();
 
         if (Minz_Request::isPost()) {
-            $userConf  = FreshRSS_Context::userConf();
-            $extId     = self::EXT_ID;
-
-            // pull out the whole extensions object
-            $extensions = $userConf->extensions;
-            if (!isset($extensions->{$extId}) || !is_object($extensions->{$extId})) {
-                $extensions->{$extId} = new \stdClass();
-            }
-            $extConf = $extensions->{$extId};
-
-            $extConf->refresh_enabled  = Minz_Request::param('refresh_enabled') === 'on';
-            $extConf->refresh_interval = Minz_Request::paramInt('refresh_interval', 15);
-            $extConf->date_format      = Minz_Request::paramString('date_format', 'Y-m-d H:i');
-
-            $userConf->extensions = $extensions;
+            $userConf = FreshRSS_Context::userConf();
+            
+            $userConf->_attribute('refresh_enabled', Minz_Request::param('refresh_enabled') === 'on' ? 1 : 0);
+            $userConf->_attribute('refresh_interval', Minz_Request::paramInt('refresh_interval', 15));
+            $userConf->_attribute('date_format', Minz_Request::paramString('date_format', 'Y-m-d H:i'));
+            
             $userConf->save();
-            Minz_Session::add('feedback', ['success', _t('feedback.success.save')]);
-
-            // ← corrected controller/action here
-            Minz_Url::redirect(
-                Minz_Url::display([
-                    'c' => 'extension',
-                    'a' => 'configure',
-                    'e' => $extId,
-                ])
-            );
         }
     }
 	/**
@@ -97,13 +78,18 @@ class DashboardViewExtension extends Minz_Extension {
 	 * @return mixed The setting value.
 	 */
     public function getSetting(string $key, $default = null) {
-		$userConf = FreshRSS_Context::userConf();
-		$extId = $this->getName();
-		
-		if (!isset($userConf->extensions[$extId])) {
-			return $default;
-		}
-
-		return $userConf->extensions[$extId]->{$key} ?? $default;
-	}
+        $userConf = FreshRSS_Context::userConf();
+        
+        switch ($key) {
+            case 'refresh_enabled':
+                $value = $userConf->attributeInt($key);
+                return $value === null ? $default : (bool)$value;
+            case 'refresh_interval':
+                return $userConf->attributeInt($key) ?? $default;
+            case 'date_format':
+                return $userConf->attributeString($key) ?? $default;
+            default:
+                return $default;
+        }
+    }
 }

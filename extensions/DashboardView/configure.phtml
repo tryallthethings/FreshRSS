@@ -3,7 +3,7 @@
 /** @var DashboardViewExtension $this */
 ?>
 <form
-    action="<?= _url('extension', 'configure', 'e', urlencode($this->getId())) ?>"
+    action="<?= _url('extension', 'configure', 'e', urlencode($this->getName())) ?>"
     method="post"
 >
     <input type="hidden" name="_csrf" value="<?= FreshRSS_Auth::csrfToken() ?>">
