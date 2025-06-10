@@ -1,4 +1,4 @@
-document.addEventListener('freshrss:globalContextLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
 	const dashboardView = document.querySelector('.dashboard-view');
 	if (dashboardView) {
 		initializeDashboard(dashboardView);
@@ -10,7 +10,11 @@ function initializeDashboard(dashboardView) {
 	let state = { layout: [], feeds: {}, activeTabId: null, allPlacedFeedIds: new Set() };
 
 	// --- DOM & CONFIG ---
-	const { getLayoutUrl, saveLayoutUrl, tabActionUrl, setActiveTabUrl, csrfToken, saveFeedSettingsUrl, moveFeedUrl } = dashboardView.dataset;
+    const { getLayoutUrl, saveLayoutUrl, tabActionUrl, setActiveTabUrl, csrfToken, saveFeedSettingsUrl, moveFeedUrl } = dashboardView.dataset;
+    const trEl = document.getElementById('dbview-i18n');
+    const tr = trEl ? JSON.parse(trEl.textContent) : {};
+    if (trEl) trEl.remove();
+    
 	const tabsContainer = dashboardView.querySelector('.dashboard-tabs');
 	const panelsContainer = dashboardView.querySelector('.dashboard-panels');
 	const templates = {
@@ -29,12 +33,12 @@ function initializeDashboard(dashboardView) {
 	function renderTabs() {
 		tabsContainer.innerHTML = '';
 		state.layout.forEach(tab => tabsContainer.appendChild(createTabLink(tab)));
-		const addButton = document.createElement('button');
-		addButton.type = 'button';
-		addButton.className = 'tab-add-button';
-		addButton.textContent = '+';
-		addButton.ariaLabel = 'Add new tab';
-		tabsContainer.appendChild(addButton);
+        const addButton = document.createElement('button');
+        addButton.type = 'button';
+        addButton.className = 'tab-add-button';
+        addButton.textContent = '+';
+        addButton.ariaLabel = tr.add_tab || 'Add new tab';
+        tabsContainer.appendChild(addButton);
 	}
 
 	function renderPanels() {
@@ -42,17 +46,26 @@ function initializeDashboard(dashboardView) {
 		state.layout.forEach(tab => panelsContainer.appendChild(createTabPanel(tab)));
 	}
 
-	function createTabLink(tab) {
-		const link = templates.tabLink.content.cloneNode(true).firstElementChild;
-		link.dataset.tabId = tab.id;
-		link.querySelector('.tab-name').textContent = tab.name;
-        
-        const settingsButton = link.querySelector('.tab-settings-button');
-        if (settingsButton) {
-            settingsButton.innerHTML = '&#x25BC;'; // Downward-pointing triangle
-        }
+function createTabLink(tab) {
+                const link = templates.tabLink.content.cloneNode(true).firstElementChild;
+                link.dataset.tabId = tab.id;
+                const iconSpan = link.querySelector('.tab-icon');
+                if (iconSpan) {
+                        iconSpan.textContent = tab.icon || '';
+                        iconSpan.style.color = tab.icon_color || '';
+                }
+                link.querySelector('.tab-name').textContent = tab.name;
+                const iconInput = link.querySelector('.tab-icon-input');
+                if (iconInput) iconInput.value = tab.icon || '';
+                const colorInput = link.querySelector('.tab-icon-color-input');
+                if (colorInput) colorInput.value = tab.icon_color || '#000000';
 
-		return link;
+                const settingsButton = link.querySelector('.tab-settings-button');
+                if (settingsButton) {
+                        settingsButton.innerHTML = '&#x25BC;';
+                }
+
+                return link;
 	}
 
 	function createTabPanel(tab) {
@@ -61,7 +74,16 @@ function initializeDashboard(dashboardView) {
 		return panel;
 	}
 
-	function renderTabContent(tab) {
+    const refreshInterval = 1 * 60 * 1000; // 15 minutes
+    setInterval(() => {
+        const isInteracting = document.querySelector('.tab-settings-menu.active, .feed-settings-editor.active') ||
+                              (document.activeElement && ['INPUT', 'TEXTAREA', 'BUTTON', 'A'].includes(document.activeElement.tagName));
+        if (!isInteracting) {
+            location.reload();
+        }
+    }, refreshInterval);
+
+    function renderTabContent(tab) {
 		const panel = document.getElementById(tab.id);
 		if (!panel) return;
 
@@ -77,23 +99,38 @@ function initializeDashboard(dashboardView) {
 			return colDiv;
 		});
 
-		Object.entries(tab.columns).forEach(([colId, feedIds]) => {
-			const colIndex = parseInt(colId.replace('col', ''), 10) - 1;
-			if (columns[colIndex]) {
-				feedIds.forEach(feedId => {
-					const feedData = state.feeds[feedId];
-					if (feedData) {
-						columns[colIndex].appendChild(createFeedContainer(feedData, tab.id));
-					}
-				});
-			}
-		});
+		// This set prevents a feed from being drawn more than once in a single render.
+		const renderedFeeds = new Set();
 
+		// Part 1: Render feeds that are explicitly placed in the current tab's layout.
+		if (tab.columns && typeof tab.columns === 'object') {
+			Object.entries(tab.columns).forEach(([colId, feedIds]) => {
+				const colIndex = parseInt(colId.replace('col', ''), 10) - 1;
+				if (columns[colIndex] && Array.isArray(feedIds)) {
+					feedIds.forEach(feedId => {
+						const feedIdStr = String(feedId);
+						// Ensure the feed exists and we haven't already drawn it.
+						if (state.feeds[feedIdStr] && !renderedFeeds.has(feedIdStr)) {
+							columns[colIndex].appendChild(createFeedContainer(state.feeds[feedIdStr], tab.id));
+							renderedFeeds.add(feedIdStr);
+						}
+					});
+				}
+			});
+		}
+
+		// Part 2: On the very first tab, also render any feeds that are not placed in *any* tab's layout.
 		const isFirstTab = state.layout.length > 0 && state.layout[0].id === tab.id;
 		if (isFirstTab) {
 			Object.values(state.feeds).forEach(feedData => {
-				if (!state.allPlacedFeedIds.has(String(feedData.id))) {
-					columns[0].appendChild(createFeedContainer(feedData, tab.id));
+				const feedIdStr = String(feedData.id);
+				// A feed is unplaced if it's not in the master list of all placed feeds.
+				// We also double-check it wasn't already rendered (defense-in-depth).
+				if (!state.allPlacedFeedIds.has(feedIdStr) && !renderedFeeds.has(feedIdStr)) {
+					if (columns[0]) {
+						columns[0].appendChild(createFeedContainer(feedData, tab.id));
+						renderedFeeds.add(feedIdStr);
+					}
 				}
 			});
 		}
@@ -101,7 +138,7 @@ function initializeDashboard(dashboardView) {
 		initializeSortable(columns);
 	}
 
-	function createFeedContainer(feed, sourceTabId) {
+    function createFeedContainer(feed, sourceTabId) {
 		const container = templates.feedContainer.content.cloneNode(true).firstElementChild;
 		container.dataset.feedId = feed.id;
         container.dataset.sourceTabId = sourceTabId;
@@ -120,15 +157,16 @@ function initializeDashboard(dashboardView) {
 		const contentDiv = container.querySelector('.dashboard-container-content');
 		if (feed.entries && Array.isArray(feed.entries) && feed.entries.length > 0 && !feed.entries.error) {
 			const ul = document.createElement('ul');
-			feed.entries.forEach(entry => {
-				const li = document.createElement('li');
-				li.className = 'entry-item';
-				li.innerHTML = `<div class="entry-main"><a href="${entry.link}" target="_blank" rel="noopener noreferrer" class="entry-title">${entry.title || '(No title)'}</a><span class="entry-snippet">${entry.snippet}</span></div><span class="entry-date" title="${entry.dateFull}">${entry.dateShort}</span>`;
-				ul.appendChild(li);
-			});
+                feed.entries.forEach(entry => {
+                    const li = document.createElement('li');
+                    li.className = 'entry-item';
+                    const snippet = entry.snippet ? `<span class="entry-snippet">${entry.snippet}</span>` : '';
+                    li.innerHTML = `<div class="entry-main"><a href="${entry.link}" target="_blank" rel="noopener noreferrer" class="entry-title">${entry.title || '(No title)'}</a>${snippet}</div><span class="entry-date" title="${entry.dateFull}">${entry.dateShort}</span>`;
+                    ul.appendChild(li);
+                });
 			contentDiv.appendChild(ul);
 		} else {
-			contentDiv.innerHTML = `<p class="no-entries">${feed.entries.error || 'No recent articles.'}</p>`;
+            contentDiv.innerHTML = `<p class="no-entries">${feed.entries.error || tr.no_entries || 'No recent articles.'}</p>`;
 		}
 
 		const editor = container.querySelector('.feed-settings-editor');
@@ -147,7 +185,7 @@ function initializeDashboard(dashboardView) {
         if (otherTabs.length > 0) {
             const moveDiv = document.createElement('div');
             moveDiv.className = 'feed-move-to';
-            moveDiv.innerHTML = '<label>Move to:</label>';
+            moveDiv.innerHTML = '<label>' + (tr.move_to || 'Move to:') + '</label>';
             const ul = document.createElement('ul');
             ul.className = 'feed-move-to-list';
             otherTabs.forEach(tab => {
@@ -156,6 +194,8 @@ function initializeDashboard(dashboardView) {
                 button.type = 'button';
                 button.dataset.targetTabId = tab.id;
                 button.textContent = tab.name;
+                // Add a descriptive aria-label for accessibility, as you suggested.
+                button.setAttribute('aria-label', `Move feed to tab: ${tab.name}`);
                 li.appendChild(button);
                 ul.appendChild(li);
             });
@@ -249,7 +289,7 @@ function initializeDashboard(dashboardView) {
 
 			if (e.target.closest('.tab-action-delete')) {
 				const tabId = e.target.closest('.dashboard-tab').dataset.tabId;
-				if (confirm('Are you sure you want to delete this tab? Feeds on it will be moved to your first tab.')) {
+				if (confirm(tr.confirm_delete_tab || 'Are you sure you want to delete this tab? Feeds on it will be moved to your first tab.')) {
 					api(tabActionUrl, { operation: 'delete', tab_id: tabId }).then(data => {
 						if (data.status === 'success') {
 							state.layout = data.new_layout;
@@ -290,21 +330,29 @@ function initializeDashboard(dashboardView) {
                 const sourceTabId = container.dataset.sourceTabId;
                 const targetTabId = moveButton.dataset.targetTabId;
 
+				if (!moveFeedUrl) {
+					console.error('DashboardView: moveFeedUrl is not defined in the dataset. Cannot move feed.');
+					return;
+				}
+
                 api(moveFeedUrl, { feed_id: feedId, source_tab_id: sourceTabId, target_tab_id: targetTabId })
                 .then(data => {
                     if (data.status === 'success') {
                         state.layout = data.new_layout;
 						state.allPlacedFeedIds = new Set(data.new_layout.flatMap(t => Object.values(t.columns).flat()).map(String));
 
-						const sourceTab = state.layout.find(t => t.id === sourceTabId) || {id: sourceTabId, num_columns: 3, columns: {}}; // Fallback for re-render
+						// Remove feed container from its original position
+						container.remove();
+
 						const targetTab = state.layout.find(t => t.id === targetTabId);
-						
-						document.getElementById(sourceTabId).querySelector('.dashboard-columns').innerHTML = '';
-						renderTabContent(sourceTab);
-						
-						if (targetTab) {
-							document.getElementById(targetTabId).querySelector('.dashboard-columns').innerHTML = '';
-							renderTabContent(targetTab);
+						const targetPanel = document.getElementById(targetTabId);
+
+						// If target tab is active, re-render its content. Otherwise, just clear it.
+						if (targetTab && targetPanel) {
+							targetPanel.querySelector('.dashboard-columns').innerHTML = '';
+							if (targetPanel.classList.contains('active')) {
+								renderTabContent(targetTab);
+							}
 						}
                     }
                 }).catch(console.error);
@@ -350,7 +398,26 @@ function initializeDashboard(dashboardView) {
 			}
 		});
 
-		tabsContainer.addEventListener('dblclick', e => {
+		 tabsContainer.addEventListener('change', e => {
+                        if (e.target.classList.contains('tab-icon-input') || e.target.classList.contains('tab-icon-color-input')) {
+                                const tabEl = e.target.closest('.dashboard-tab');
+                                if (!tabEl) return;
+                                const tabId = tabEl.dataset.tabId;
+                                const iconVal = tabEl.querySelector('.tab-icon-input').value.trim();
+                                const colorVal = tabEl.querySelector('.tab-icon-color-input').value;
+                                api(tabActionUrl, { operation: 'set_icon', tab_id: tabId, icon: iconVal, color: colorVal }).then(() => {
+                                        const iconSpan = tabEl.querySelector('.tab-icon');
+                                        if (iconSpan) {
+                                                iconSpan.textContent = iconVal;
+                                                iconSpan.style.color = colorVal;
+                                        }
+                                        const tabData = state.layout.find(t => t.id === tabId);
+                                        if (tabData) { tabData.icon = iconVal; tabData.icon_color = colorVal; }
+                                }).catch(console.error);
+                        }
+                });
+
+                tabsContainer.addEventListener('dblclick', e => {
 			const tabNameSpan = e.target.closest('.tab-name');
 			if (!tabNameSpan) return;
 			
@@ -364,45 +431,82 @@ function initializeDashboard(dashboardView) {
 			input.className = 'tab-name-input';
 			input.value = oldName;
 			
+			let isSaving = false;
 			const saveName = () => {
+				if (isSaving) return;
+				isSaving = true;
+
 				const newName = input.value.trim();
-                const tabInState = state.layout.find(t => t.id === tabId);
-                tabNameSpan.textContent = tabInState ? tabInState.name : oldName;
-				input.replaceWith(tabNameSpan);
+				
+				if (input.parentNode) {
+					input.replaceWith(tabNameSpan);
+				}
 
 				if (newName && newName !== oldName) {
+					tabNameSpan.textContent = newName;
 					api(tabActionUrl, { operation: 'rename', tab_id: tabId, value: newName }).then(data => {
 						if (data.status === 'success') {
-							tabNameSpan.textContent = newName;
-                            if (tabInState) tabInState.name = newName;
+							const tabInState = state.layout.find(t => t.id === tabId);
+							if (tabInState) tabInState.name = newName;
+						} else {
+							tabNameSpan.textContent = oldName;
 						}
-					}).catch(console.error);
+					}).catch(err => {
+						console.error("Error renaming tab:", err);
+						tabNameSpan.textContent = oldName;
+					});
+				} else {
+					tabNameSpan.textContent = oldName;
 				}
 			};
 			
 			input.addEventListener('blur', saveName);
-			input.addEventListener('keydown', e => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') { input.value = oldName; input.blur(); } });
+			input.addEventListener('keydown', ev => {
+				if (ev.key === 'Enter') {
+					ev.preventDefault();
+					saveName();
+				} else if (ev.key === 'Escape') {
+					input.value = oldName;
+					input.blur();
+				}
+			});
+
 			tabNameSpan.replaceWith(input);
 			input.focus();
 			input.select();
 		});
 	}
-
+    
 	// --- INITIALIZATION ---
 	fetch(getLayoutUrl)
-		.then(res => res.json())
+		.then(res => {
+			if (!res.ok) {
+				throw new Error(`HTTP error! status: ${res.status}`);
+			}
+			return res.json();
+		})
 		.then(data => {
-            state.allPlacedFeedIds = new Set(data.layout.flatMap(t => Object.values(t.columns).flat()).map(String));
-			state.layout = data.layout;
+			const feedsDataScript = document.getElementById('feeds-data-script');
+			if (!feedsDataScript || !feedsDataScript.textContent) {
+				throw new Error('Feeds data script is missing or empty.');
+			}
+
+			// Set the primary state objects from the data
+			state.layout = data.layout || [];
 			state.activeTabId = data.active_tab_id;
-			state.feeds = JSON.parse(document.getElementById('feeds-data-script').textContent);
+			state.feeds = JSON.parse(feedsDataScript.textContent);
+			
+			state.allPlacedFeedIds = new Set(state.layout.flatMap(t => Object.values(t.columns).flat()).map(String));
+			
+			// Clean up the temporary script tag
 			document.getElementById('feeds-data-script').remove();
 			
+			// Render the fully-initialized dashboard with the correct state
 			render();
 			setupEventListeners();
 		})
 		.catch(error => {
-			console.error('DashboardView: Could not initialize.', error);
-			dashboardView.innerHTML = '<p>Error loading dashboard. Please check the console and try again.</p>';
+            console.error('DashboardView: Could not initialize.', error);
+            dashboardView.innerHTML = '<p>' + (tr.error_dashboard_init || 'Error loading dashboard. Please check the console and try again.') + '</p>';
 		});
 }

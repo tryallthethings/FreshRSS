@@ -13,16 +13,30 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 		$layoutKey = DashboardViewExtension::LAYOUT_CONFIG_KEY;
 		$layout = @$userConf->{$layoutKey} ?? null;
 
-		if ($layout === null) {
-			$oldLayoutKey = DashboardViewExtension::LAYOUT_CONFIG_KEY_V1;
-			$oldLayout = @$userConf->{$oldLayoutKey} ?? null;
-			if (is_array($oldLayout) && !empty($oldLayout)) {
-				$layout = [[ 'id' => 'tab-' . microtime(true), 'name' => _t('ext.DashboardView.default_tab_name', 'Main'), 'num_columns' => count($oldLayout), 'columns' => $oldLayout ]];
-			} else {
-				$layout = [[ 'id' => 'tab-' . microtime(true), 'name' => _t('ext.DashboardView.default_tab_name', 'Main'), 'num_columns' => 3, 'columns' => ['col1' => [], 'col2' => [], 'col3' => []] ]];
-			}
-			$this->saveLayout($layout);
-		}
+	 if ($layout === null) {
+            $oldLayoutKey = DashboardViewExtension::LAYOUT_CONFIG_KEY_V1;
+            $oldLayout = @$userConf->{$oldLayoutKey} ?? null;
+            if (is_array($oldLayout) && !empty($oldLayout)) {
+                    $layout = [[
+                            'id' => 'tab-' . microtime(true),
+                            'name' => _t('ext.DashboardView.default_tab_name', 'Main'),
+                            'icon' => '',
+                            'icon_color' => '',
+                            'num_columns' => count($oldLayout),
+                            'columns' => $oldLayout,
+                    ]];
+            } else {
+                    $layout = [[
+                            'id' => 'tab-' . microtime(true),
+                            'name' => _t('ext.DashboardView.default_tab_name', 'Main'),
+                            'icon' => '',
+                            'icon_color' => '',
+                            'num_columns' => 3,
+                            'columns' => ['col1' => [], 'col2' => [], 'col3' => []],
+                    ]];
+            }
+            $this->saveLayout($layout);
+        }
 		return is_array($layout) ? $layout : [];
 	}
 
@@ -32,8 +46,9 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 		$userConf->save();
 	}
 
-public function indexAction() {
-		$feedDAO = new FreshRSS_FeedDAO();
+    public function indexAction() {
+        $this->noCacheHeaders();
+        $feedDAO = new FreshRSS_FeedDAO();
 		$entryDAO = new FreshRSS_EntryDAO();
 		try {
 			FreshRSS_Context::updateUsingRequest(true);
@@ -93,6 +108,8 @@ public function indexAction() {
 		@$this->view->moveFeedUrl = Minz_Url::display(['c' => $controllerParam, 'a' => 'movefeed'], true);
 		@$this->view->setActiveTabUrl = Minz_Url::display(['c' => $controllerParam, 'a' => 'setactivetab'], true);
 		@$this->view->rss_title = _t('ext.DashboardView.title');
+        @$this->view->refreshInterval = $extConf->refresh_interval ?? 15;
+        @$this->view->dateFormat = $extConf->date_format ?? 'YYYY-MM-DD hh:mm';        
 		@$this->view->html_url = Minz_Url::display(); // Fix for PHP Warning in header.phtml
 
 		@$this->view->categories = FreshRSS_Context::categories();
@@ -126,7 +143,7 @@ public function indexAction() {
 		exit;
 	}
 
-	public function saveLayoutAction() {
+public function saveLayoutAction() {
 		$this->noCacheHeaders();
 		header('Content-Type: application/json');
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['layout']) || !isset($_POST['tab_id'])) { http_response_code(400); exit; }
@@ -134,6 +151,16 @@ public function indexAction() {
 		$tabId = Minz_Request::paramString('tab_id');
 		if (json_last_error() === JSON_ERROR_NONE && is_array($layoutData)) {
 			try {
+				// --- FIX: Sanitize incoming data to prevent corruption ---
+				foreach ($layoutData as $colId => &$feedIds) {
+					// If a column's data is not an array, force it to be an empty one.
+					if (!is_array($feedIds)) {
+						$feedIds = [];
+					}
+				}
+				unset($feedIds); // Important: unset the reference
+				// --- End of fix ---
+
 				$layout = $this->getLayout();
 				foreach ($layout as $index => $tab) {
 					if ($tab['id'] === $tabId) { $layout[$index]['columns'] = $layoutData; break; }
@@ -154,7 +181,14 @@ public function indexAction() {
 		try {
 			switch ($operation) {
 				case 'add':
-					$newTab = ['id' => 'tab-'.microtime(true).rand(), 'name' => _t('ext.DashboardView.new_tab_name', 'New Tab'), 'num_columns' => 3, 'columns' => ['col1'=>[],'col2'=>[],'col3'=>[]]];
+					 $newTab = [
+                                        'id' => 'tab-'.microtime(true).rand(),
+                                        'name' => _t('ext.DashboardView.new_tab_name', 'New Tab'),
+                                        'icon' => '',
+                                        'icon_color' => '',
+                                        'num_columns' => 3,
+                                        'columns' => ['col1'=>[],'col2'=>[],'col3'=>[]],
+                                ];
 					$layout[] = $newTab;
 					$this->saveLayout($layout);
 					echo json_encode(['status' => 'success', 'new_tab' => $newTab]);
@@ -189,9 +223,9 @@ public function indexAction() {
 					$this->saveLayout($layout);
 					echo json_encode(['status' => 'success']);
 					break;
-				case 'set_columns':
-					$tabId = Minz_Request::paramString('tab_id');
-					$numCols = Minz_Request::paramInt('value', 3);
+				 case 'set_columns':
+                    $tabId = Minz_Request::paramString('tab_id');
+                    $numCols = Minz_Request::paramInt('value', 3);
 					if ($numCols < 1 || $numCols > 6) { $numCols = 3; }
 					foreach ($layout as &$tab) {
 						if ($tab['id'] === $tabId) {
@@ -208,9 +242,23 @@ public function indexAction() {
 					}
 					$this->saveLayout($layout);
 					echo json_encode(['status' => 'success', 'new_layout' => $layout]);
-					break;
-				default: throw new Exception('Unknown tab operation.');
-			}
+                        break;
+                    case 'set_icon':
+                        $tabId = Minz_Request::paramString('tab_id');
+                        $icon = Minz_Request::paramString('icon');
+                        $color = Minz_Request::paramString('color');
+                        foreach ($layout as &$tab) {
+                                if ($tab['id'] === $tabId) {
+                                        $tab['icon'] = $icon;
+                                        $tab['icon_color'] = $color;
+                                        break;
+                                }
+                        }
+                        $this->saveLayout($layout);
+                        echo json_encode(['status' => 'success']);
+                        break;
+                    default: throw new Exception('Unknown tab operation.');
+            }
 		} catch (Exception $e) { http_response_code(500); echo json_encode(['status' => 'error', 'message' => $e->getMessage()]); }
 		exit;
 	}
@@ -244,27 +292,132 @@ public function indexAction() {
     public function moveFeedAction() {
 		$this->noCacheHeaders();
 		header('Content-Type: application/json');
-		$feedId = Minz_Request::paramInt('feed_id');
+
+		// FIX: Treat all IDs as strings to prevent type mismatch issues.
+		$feedId = Minz_Request::paramString('feed_id');
 		$targetTabId = Minz_Request::paramString('target_tab_id');
 		$sourceTabId = Minz_Request::paramString('source_tab_id');
-		if (!$feedId || !$targetTabId || !$sourceTabId) { http_response_code(400); exit; }
+
+		if (!$feedId || !$targetTabId || !$sourceTabId) {
+			http_response_code(400);
+			exit;
+		}
+
 		try {
 			$layout = $this->getLayout();
+
+			// Find and remove the feed from the source tab
 			foreach ($layout as &$tab) {
 				if ($tab['id'] === $sourceTabId) {
 					foreach ($tab['columns'] as &$column) {
-						$column = array_filter($column, fn($id) => $id != $feedId);
+						// Ensure we are working with an array
+						if (!is_array($column)) {
+							continue;
+						}
+						// Use a temporary variable to hold the filtered array
+						$filtered_column = [];
+						foreach ($column as $id) {
+							if ((string)$id !== $feedId) {
+								$filtered_column[] = $id;
+							}
+						}
+						$column = $filtered_column;
 					}
-				}
-				if ($tab['id'] === $targetTabId) {
-					$firstColKey = !empty($tab['columns']) ? key($tab['columns']) : 'col1';
-					if (!isset($tab['columns'][$firstColKey])) $tab['columns'][$firstColKey] = [];
-					$tab['columns'][$firstColKey][] = $feedId;
+					unset($column); // End the reference
 				}
 			}
+			unset($tab); // End the reference
+
+			// Add the feed to the target tab
+			foreach ($layout as &$tab) {
+				if ($tab['id'] === $targetTabId) {
+					$firstColKey = !empty($tab['columns']) ? key($tab['columns']) : 'col1';
+					if (!isset($tab['columns'][$firstColKey])) {
+						$tab['columns'][$firstColKey] = [];
+					}
+					// Add the feed ID if it's not already there
+					if (!in_array($feedId, $tab['columns'][$firstColKey], true)) {
+						$tab['columns'][$firstColKey][] = $feedId;
+					}
+					break; 
+				}
+			}
+			unset($tab); // End the reference
+
 			$this->saveLayout($layout);
 			echo json_encode(['status' => 'success', 'new_layout' => $layout]);
-		} catch (Exception $e) { http_response_code(500); }
+		} catch (Exception $e) {
+			http_response_code(500);
+			// Optional: log the error message for debugging
+			// error_log('DashboardView moveFeedAction error: ' . $e->getMessage());
+			echo json_encode(['status' => 'error', 'message' => 'An internal error occurred.']);
+		}
+		exit;
+	}
+
+/**
+	 * A temporary debug action to view all saved settings for this extension.
+	 */
+	public function debugConfigAction() {
+		try {
+			$userConf = FreshRSS_Context::userConf();
+			$dashboardSettings = [];
+			
+			// Iterate over all configuration settings and find the ones for this extension
+			foreach ($userConf as $key => $value) {
+				if (strpos($key, DashboardViewExtension::EXT_ID) === 0) {
+					$dashboardSettings[$key] = $value;
+				}
+			}
+
+			// Print the settings as a nicely formatted JSON object
+			header('Content-Type: application/json');
+			echo json_encode($dashboardSettings, JSON_PRETTY_PRINT);
+
+		} catch (Exception $e) {
+			http_response_code(500);
+			header('Content-Type: text/plain');
+			echo 'An error occurred while trying to read the settings: ' . $e->getMessage();
+		}
+		exit;
+	}
+
+	/**
+	 * A temporary and robust reset action to wipe all settings for this extension.
+	 */
+	public function resetAction() {
+		try {
+			$userConf = FreshRSS_Context::userConf();
+			$keys_to_delete = [];
+
+			// Find all keys related to this extension to prepare for deletion
+			foreach ($userConf as $key => $value) {
+				if (strpos($key, DashboardViewExtension::EXT_ID) === 0) {
+					$keys_to_delete[] = $key;
+				}
+			}
+
+			if (empty($keys_to_delete)) {
+				$message = 'No DashboardView settings were found to delete. The configuration is already clean.';
+			} else {
+				foreach ($keys_to_delete as $key) {
+					unset($userConf->{$key});
+				}
+		
+				$userConf->save();
+				$message = 'SUCCESS: All ' . count($keys_to_delete) . ' DashboardView settings have been reset.';
+			}
+
+			header('Content-Type: text/plain');
+			echo $message . PHP_EOL;
+			echo 'You can now navigate back to your FreshRSS instance.' . PHP_EOL;
+			echo 'IMPORTANT: Please remove both the `resetAction` and `debugConfigAction` functions from your controller file now.';
+
+		} catch (Exception $e) {
+			http_response_code(500);
+			header('Content-Type: text/plain');
+			echo 'ERROR: An error occurred while trying to reset settings: ' . $e->getMessage();
+		}
 		exit;
 	}
 
