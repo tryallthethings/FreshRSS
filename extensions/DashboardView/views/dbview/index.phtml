@@ -34,7 +34,7 @@ if (!Minz_Request::paramBoolean('ajax')) {
 			<button type="button" class="tab-settings-button" aria-label="Tab settings">▾</button>
 			<div class="tab-settings-menu">
 				<div class="menu-section">
-					<label>Columns</label>
+					<label>Number of columns</label>
 					<div class="columns-selector">
 						<button data-columns="1">1</button>
 						<button data-columns="2">2</button>
@@ -62,7 +62,7 @@ if (!Minz_Request::paramBoolean('ajax')) {
 			<img src="" alt="" class="feed-favicon" width="16" height="16" loading="lazy" />
 			<span class="feed-title"></span>
 			<div class="feed-settings">
-				<button type="button" class="feed-settings-button" title="Feed settings" aria-label="Settings for this feed">
+				<button type="button" class="feed-settings-button" title="<?php echo _t('ext.DashboardView.feed_settings', 'Feed settings') ?>" aria-label="Settings for this feed">
 					<?= _i('configure') ?></a>
 				</button>
 				<div class="feed-settings-editor">

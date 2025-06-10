@@ -10,18 +10,56 @@
 .dashboard-tab:hover { background-color: var(--background-color-light-shadowed); }
 .dashboard-tab.active { background-color: var(--background-color-light-shadowed); border-color: var(--border-color); font-weight: bold; color: var(--font-color); }
 .tab-name-input { border: 1px solid var(--border-color-focus); padding: 2px 4px; font: inherit; background-color: var(--background-color-light); color: var(--font-color); }
-.tab-add-button { padding: 6px 10px; font-weight: bold; font-size: 1.2em; line-height: 1; border: 1px solid transparent; border-radius: var(--border-radius); background-color: transparent; cursor: pointer; margin-left: 4px; }
-.tab-add-button:hover { background-color: var(--background-color-grey); border-color: var(--border-color); }
+
+.tab-add-button { 
+    padding: 4px 12px; 
+    font-weight: bold; 
+    font-size: 1.5em;
+    line-height: 1; 
+    border: 1px solid var(--border-color); 
+    border-radius: var(--border-radius); 
+    background-color: var(--background-color-grey);
+    color: var(--font-color);
+    cursor: pointer; 
+    margin-left: 8px; 
+}
+.tab-add-button:hover { 
+    background-color: var(--link-color);
+    border-color: var(--link-color);
+    color: white;
+}
+
 .tab-settings { position: relative; }
-.tab-settings-button { background: none; border: none; cursor: pointer; padding: 0 4px; opacity: 0.6; line-height: 1; }
-.dashboard-tab:hover .tab-settings-button, .tab-settings-button:focus { opacity: 1; }
+.tab-settings-button { 
+    background: none; 
+    border: none; 
+    cursor: pointer; 
+    padding: 0 4px;
+    color: var(--font-color-grey);
+    font-size: 1em; /* Adjusted size */
+    line-height: 1; 
+    margin-left: 5px;
+    font-weight: normal;
+}
+.dashboard-tab:hover .tab-settings-button, .tab-settings-button:focus { 
+    color: var(--font-color);
+}
 .tab-settings-menu { display: none; position: absolute; top: 100%; right: 0; z-index: 50; background: var(--background-color-light-shadowed); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: 0 2px 8px rgba(0,0,0,0.15); padding: 10px; min-width: 180px; flex-direction: column; gap: 10px; }
 .tab-settings-menu.active { display: flex; }
 .tab-settings-menu .menu-section { display: flex; flex-direction: column; gap: 5px; }
 .tab-settings-menu label { font-weight: bold; font-size: 0.9em; margin-bottom: 4px; }
 .columns-selector { display: flex; justify-content: space-between; gap: 2px; }
-.columns-selector button { flex: 1; padding: 4px 8px; border: 1px solid var(--border-color); background: var(--background-color-grey); cursor: pointer; }
-.columns-selector button.active { background: var(--link-color); color: white; border-color: var(--link-color); }
+.columns-selector button { flex: 1; padding: 4px 8px; border: 1px solid var(--border-color);  background-color: var(--link-color);
+    color: white;
+    border-color: var(--link-color); cursor: pointer; }
+
+/* Change for request #3 */
+.columns-selector button.active { 
+    background: var(--background-color-light-shadowed);
+    color: var(--link-color); 
+    border-color: var(--link-color);
+    box-shadow: 0 0 2px var(--link-color);
+}
 .tab-action-delete { margin-top: 10px; padding: 5px; text-align: center; background-color: #d9534f; color: white; border: none; border-radius: var(--border-radius); cursor: pointer; }
 .tab-action-delete:hover { background-color: #c9302c; }
 
@@ -43,13 +81,61 @@
 .feed-settings-editor { display: none; flex-direction: column; gap: 10px; position: absolute; top: calc(100% + 5px); right: 0; background-color: var(--background-color-light-shadowed); border: 1px solid var(--border-color-shadow-side); padding: 10px 15px; border-radius: var(--border-radius); box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 20; min-width: 240px; }
 .feed-settings-editor.active { display: flex; }
 .setting-row { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
-.setting-row label { flex-shrink: 0; white-space: nowrap; }
+.setting-row label { flex-shrink: 0; white-space: nowrap; font-size: 0.9em; }
 .setting-row select { flex-grow: 1; }
-.setting-row.setting-row-buttons { margin-top: 5px; justify-content: flex-end; }
+
+.setting-row.setting-row-buttons { margin-top: 10px; justify-content: flex-end; }
+.setting-row button {
+    padding: 4px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+}
+.setting-row button:hover {
+    border-color: var(--border-color-focus);
+}
+.feed-settings-save {
+    background-color: var(--link-color);
+    color: white;
+    border-color: var(--link-color);
+}
+
+.feed-settings-cancel {
+    background-color: var(--link-color);
+    color: white;
+    border-color: var(--link-color);
+}
+.feed-settings-save:hover {
+    opacity: 0.9;
+}
+
+
+.feed-move-to { border-top: 1px solid var(--border-color); margin-top: 8px; padding-top: 8px; }
+.feed-move-to label { font-weight: bold; font-size: 0.9em; margin-bottom: 4px; display: block; }
+.feed-move-to-list { list-style: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto; }
+.feed-move-to-list li button {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 6px 4px;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    font-size: 0.9em;
+    background-color: var(--link-color);
+    color: white;
+    border-color: var(--link-color);    
+}
+.feed-move-to-list li button:hover {
+    background-color: var(--background-color-grey);
+}
+
 
 /* --- Entries --- */
-.dashboard-container-content ul { list-style: none; padding: 0; margin: 0; }
+.dashboard-container-content { padding: 0 12px; }
+.dashboard-container-content ul { list-style: none; padding: 6px 0; margin: 0; }
 .dashboard-container-content li.entry-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; border-bottom: 1px dashed var(--border-color); margin-bottom: 6px; padding-bottom: 6px; line-height: 1.4; }
+.dashboard-container-content li.entry-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 10px; }
 .entry-main { flex: 1 1 auto; min-width: 0; }
 .entry-title { font-weight: bold; }
 .entry-snippet { font-size: 0.9em; color: var(--font-color-grey); }
@@ -57,4 +143,4 @@
 
 /* Font size overrides */
 .fontsize-small .dashboard-container-content { font-size: 0.8em; }
-.fontsize-large .dashboard-container-content { font-size: 1.0em; }
+.fontsize-large .dashboard-container-content { font-size: 1.1em; }
