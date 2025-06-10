@@ -59,7 +59,7 @@ if (!Minz_Request::paramBoolean('ajax')) {
 		<div class="tab-settings">
 			<button type="button" class="tab-settings-button" aria-label="<?php echo _t('ext.DashboardView.aria_tab_settings', 'Tab settings'); ?>">▾</button>
 			<div class="tab-settings-menu">
-				<div class="menu-section">
+  				<div class="menu-section">
 					<label><?php echo _t('ext.DashboardView.columns_label', 'Number of columns'); ?></label>
 					<div class="columns-selector">
 						<button data-columns="1">1</button>
@@ -70,7 +70,7 @@ if (!Minz_Request::paramBoolean('ajax')) {
 						<button data-columns="6">6</button>
 					</div>
 				</div>
-				<div class="menu-section">
+				<div class="menu-section icon-settings">
 					<label>Icon</label>
 					<input type="text" class="tab-icon-input" list="tab-icon-list" placeholder="😀" />
 					<input type="color" class="tab-icon-color-input" value="#000000" />

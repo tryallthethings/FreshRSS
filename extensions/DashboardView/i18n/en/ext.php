@@ -23,9 +23,11 @@ return array(
         'confirm_delete_tab' => 'Are you sure you want to delete this tab? Feeds on it will be moved to your first tab.',
         'move_to' => 'Move to:',
         'error_dashboard_init' => 'Error loading dashboard. Please check the console and try again.',
+        'dashboardview.settings.refresh_enabled.label' => 'Enable auto-refresh',
+        'dashboardview.settings.refresh_enabled.help' => 'When enabled, the dashboard will reload automatically.',
         'dashboardview.settings.refresh_interval.label' => 'Refresh interval (minutes)',
-        'dashboardview.settings.refresh_interval.help' => 'The dashboard will automatically reload at this interval. Set to 0 to disable auto-refresh.',
+        'dashboardview.settings.refresh_interval.help' => 'The dashboard will automatically reload at this interval.',
         'dashboardview.settings.date_format.label' => 'Article date format',
-        'dashboardview.settings.date_format.help' => 'Uses YYYY, MM, DD, hh, mm, ss as placeholders. Example presets: "YYYY-MM-DD hh:mm", "DD.MM.YYYY hh:mm"',        
+        'dashboardview.settings.date_format.help' => 'Uses PHP date format codes. Examples: `Y-m-d H:i`, `d.m.Y H:i`',
     ),
 );

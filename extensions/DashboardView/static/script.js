@@ -10,7 +10,7 @@ function initializeDashboard(dashboardView) {
 	let state = { layout: [], feeds: {}, activeTabId: null, allPlacedFeedIds: new Set() };
 
 	// --- DOM & CONFIG ---
-    const { getLayoutUrl, saveLayoutUrl, tabActionUrl, setActiveTabUrl, csrfToken, saveFeedSettingsUrl, moveFeedUrl } = dashboardView.dataset;
+    const { getLayoutUrl, saveLayoutUrl, tabActionUrl, setActiveTabUrl, csrfToken, saveFeedSettingsUrl, moveFeedUrl, refreshEnabled, refreshInterval, dashboardUrl } = dashboardView.dataset;
     const trEl = document.getElementById('dbview-i18n');
     const tr = trEl ? JSON.parse(trEl.textContent) : {};
     if (trEl) trEl.remove();
@@ -46,7 +46,7 @@ function initializeDashboard(dashboardView) {
 		state.layout.forEach(tab => panelsContainer.appendChild(createTabPanel(tab)));
 	}
 
-function createTabLink(tab) {
+    function createTabLink(tab) {
                 const link = templates.tabLink.content.cloneNode(true).firstElementChild;
                 link.dataset.tabId = tab.id;
                 const iconSpan = link.querySelector('.tab-icon');
@@ -74,14 +74,29 @@ function createTabLink(tab) {
 		return panel;
 	}
 
-    const refreshInterval = 1 * 60 * 1000; // 15 minutes
-    setInterval(() => {
-        const isInteracting = document.querySelector('.tab-settings-menu.active, .feed-settings-editor.active') ||
-                              (document.activeElement && ['INPUT', 'TEXTAREA', 'BUTTON', 'A'].includes(document.activeElement.tagName));
-        if (!isInteracting) {
-            location.reload();
+    function setupAutoRefresh() {
+        const isRefreshEnabled = refreshEnabled === 'true' || refreshEnabled === '1';
+        
+        if (!isRefreshEnabled) {
+            return;
         }
-    }, refreshInterval);
+
+        const intervalMinutes = parseInt(refreshInterval, 10) || 15;
+        const refreshMs = intervalMinutes * 60 * 1000;
+
+        if (refreshMs <= 0) {
+            return;
+        }
+
+        setInterval(() => {
+            const isInteracting = document.querySelector('.tab-settings-menu.active, .feed-settings-editor.active') ||
+                                (document.activeElement && ['INPUT', 'TEXTAREA', 'BUTTON', 'A'].includes(document.activeElement.tagName));
+
+            if (!isInteracting && dashboardUrl) {
+                window.location.href = dashboardUrl;
+            }
+        }, refreshMs);
+    }
 
     function renderTabContent(tab) {
 		const panel = document.getElementById(tab.id);
@@ -504,6 +519,8 @@ function createTabLink(tab) {
 			// Render the fully-initialized dashboard with the correct state
 			render();
 			setupEventListeners();
+
+            setupAutoRefresh();
 		})
 		.catch(error => {
             console.error('DashboardView: Could not initialize.', error);

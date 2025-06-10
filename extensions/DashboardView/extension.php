@@ -49,4 +49,40 @@ class DashboardViewExtension extends Minz_Extension {
 		$readingModes[] = $mode;
 		return $readingModes;
 	}
+
+  /**
+	 * Handles the logic when the configuration form is submitted.
+	 */
+	public function handleConfigureAction(): void {
+		$this->registerTranslates();
+
+		if (Minz_Request::isPost()) {
+			$userConf = FreshRSS_Context::userConf();
+
+			if (!isset($userConf->extensions[$this->getId()])) {
+				$userConf->extensions[$this->getId()] = new stdClass();
+			}
+			$extConf = $userConf->extensions[$this->getId()];
+
+			$extConf->refresh_enabled = Minz_Request::param('refresh_enabled') === 'on';
+			$extConf->refresh_interval = Minz_Request::paramInt('refresh_interval', 15);
+			$extConf->date_format = Minz_Request::paramString('date_format', 'Y-m-d H:i');
+			
+			$userConf->save();
+			Minz_Session::add('feedback', ['success', _t('feedback.success.save')]);
+			Minz_Url::redirect(Minz_Url::display(['c' => 'configure', 'a' => 'extension', 'e' => $this->getId()]));
+		}
+	}
+
+	/**
+	 * A helper to get a specific setting's value for this extension.
+	 * @param string $key The setting key.
+	 * @param mixed $default The default value to return if not set.
+	 * @return mixed The setting value.
+	 */
+	public function getSetting(string $key, $default = null) {
+		$userConf = FreshRSS_Context::userConf();
+		// We use the null coalescing operator to safely access the values
+		return $userConf->extensions[$this->getId()]->{$key} ?? $default;
+	}
 }

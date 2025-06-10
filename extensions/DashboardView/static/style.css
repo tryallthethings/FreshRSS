@@ -46,12 +46,32 @@
 }
 .tab-icon { font-size: 1.2em; line-height: 1; }
 .icon-settings { display: flex; gap: 4px; align-items: center; }
-.tab-icon-input { width: 2.4em; text-align: center; }
-.tab-icon-color-input { padding: 0; border: none; background: none; width: 2.2em; }
+.tab-icon-input { flex: 1 1 auto; min-width: 2ch; width: auto; text-align: center; }
+.tab-icon-color-input { flex: 0 0 auto; padding: 0; border: none; background: none; width: 2.2em; }
+#tab-icon-list { width: auto; }
 .tab-settings-menu { display: none; position: absolute; top: 100%; right: 0; z-index: 50; background: var(--background-color-light-shadowed); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: 0 2px 8px rgba(0,0,0,0.15); padding: 10px; min-width: 180px; flex-direction: column; gap: 10px; }
 .tab-settings-menu.active { display: flex; }
 .tab-settings-menu .menu-section { display: flex; flex-direction: column; gap: 5px; }
 .tab-settings-menu label { font-weight: bold; font-size: 0.9em; margin-bottom: 4px; }
+.tab-settings-menu .icon-settings { flex-direction: row; align-items: center; }
+.tab-settings-menu .icon-settings label { margin-bottom: 0; margin-right: 4px; }
+.tab-settings-menu .icon-settings .tab-icon-input,
+.tab-settings-menu .icon-settings .tab-icon-color-input {
+    max-width: none;
+}
+.tab-settings-menu .icon-settings .tab-icon-input {
+    flex: 1 1 auto;
+    min-width: 2ch;
+    width: auto;
+    text-align: center;
+}
+.tab-settings-menu .icon-settings .tab-icon-color-input {
+    flex: 0 0 auto;
+    width: 2.2em;
+    padding: 0;
+    border: none;
+    background: none;
+}
 .columns-selector { display: flex; justify-content: space-between; gap: 2px; }
 .columns-selector button { flex: 1; padding: 4px 8px; border: 1px solid var(--border-color);  background-color: var(--link-color);
     color: white;
@@ -68,7 +88,7 @@
 .tab-action-delete:hover { background-color: #c9302c; }
 
 /* --- Tab Panels & Columns --- */
-.dashboard-panels { position: relative; flex-grow: 1; }
+.dashboard-panels { position: relative; flex-grow: 1; padding: 0 12px; }
 .dashboard-panel { display: none; }
 .dashboard-panel.active { display: block; }
 .dashboard-columns { display: flex; gap: 15px; align-items: flex-start; }

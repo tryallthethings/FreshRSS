@@ -46,7 +46,7 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 		$userConf->save();
 	}
 
-    public function indexAction() {
+   public function indexAction() {
         $this->noCacheHeaders();
         $feedDAO = new FreshRSS_FeedDAO();
 		$entryDAO = new FreshRSS_EntryDAO();
@@ -59,8 +59,12 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 
 		$feeds = $feedDAO->listFeeds();
 		$userConf = FreshRSS_Context::userConf();
+        // FIX: Access 'extensions' as an array and provide a default to prevent errors
+        $extConf = $userConf->extensions[DashboardViewExtension::EXT_ID] ?? new stdClass();
 		$stateAll = defined('FreshRSS_Entry::STATE_ALL') ? FreshRSS_Entry::STATE_ALL : 0;
 		$feedsData = [];
+
+        $dateFormat = $extConf->date_format ?? 'Y-m-d H:i';
 
 		foreach ($feeds as $feed) {
 			$entries = []; $feedId = $feed->id();
@@ -76,10 +80,11 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 			try {
 				$entryGenerator = $entryDAO->listWhere('f', $feedId, $stateAll, null, '0', '0', 'date', 'DESC', '0', 0, $limit, 0, true);
 				$fetchedEntries = [];
-				$processEntry = function(FreshRSS_Entry $entry) use (&$fetchedEntries) {
+				$processEntry = function(FreshRSS_Entry $entry) use (&$fetchedEntries, $dateFormat) {
 					$fetchedEntries[] = [
 						'link' => $entry->link(), 'title' => $entry->title(),
-						'dateShort' => (string) $entry->date(), 'dateFull' => (string) $entry->date(true),
+						'dateShort' => date($dateFormat, $entry->date(true)),
+						'dateFull' => (string) $entry->date(true),
 						'snippet' => $this->generateSnippet($entry)
 					];
 				};
@@ -108,9 +113,10 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 		@$this->view->moveFeedUrl = Minz_Url::display(['c' => $controllerParam, 'a' => 'movefeed'], true);
 		@$this->view->setActiveTabUrl = Minz_Url::display(['c' => $controllerParam, 'a' => 'setactivetab'], true);
 		@$this->view->rss_title = _t('ext.DashboardView.title');
+        
+        @$this->view->refreshEnabled = $extConf->refresh_enabled ?? false;
         @$this->view->refreshInterval = $extConf->refresh_interval ?? 15;
-        @$this->view->dateFormat = $extConf->date_format ?? 'YYYY-MM-DD hh:mm';        
-		@$this->view->html_url = Minz_Url::display(); // Fix for PHP Warning in header.phtml
+		@$this->view->html_url = Minz_Url::display(['c' => $controllerParam, 'a' => 'index']);
 
 		@$this->view->categories = FreshRSS_Context::categories();
 		$tags = FreshRSS_Context::labels(true);
