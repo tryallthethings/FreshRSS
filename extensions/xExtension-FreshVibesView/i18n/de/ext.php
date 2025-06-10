@@ -1,7 +1,7 @@
 <?php
 return array(
-    'DashboardView' => array(
-        'title' => 'Dashboard',
+    'FreshVibesView' => array(
+        'title' => 'Fresh Vibes View',
         'default_tab_name' => 'Haupt',
         'new_tab_name' => 'Neuer Tab',
         'feed_settings' => 'Feed-Einstellungen',

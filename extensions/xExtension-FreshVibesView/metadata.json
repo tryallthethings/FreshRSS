@@ -1,8 +1,8 @@
 {
-    "name": "Dashboard View",
+    "name": "Fresh Vibes View",
     "author": "AI Assistant & You",
     "description": "Provides a Netvibes-like dashboard view with draggable feed containers.",
     "version": "0.2.0",
-    "entrypoint": "DashboardView",
+    "entrypoint": "FreshVibesView",
     "type": "user"
 }

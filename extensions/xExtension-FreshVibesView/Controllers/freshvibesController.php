@@ -1,6 +1,6 @@
-<?php // dbviewController.php
+<?php // freshvibesController.php
 
-class FreshExtension_dbview_Controller extends Minz_ActionController {
+class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 
 	private function noCacheHeaders() {
 		header('Cache-Control: no-cache, no-store, must-revalidate');
@@ -10,16 +10,16 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 
 	private function getLayout(): array {
 		$userConf = FreshRSS_Context::userConf();
-		$layoutKey = DashboardViewExtension::LAYOUT_CONFIG_KEY;
+		$layoutKey = FreshVibesViewExtension::LAYOUT_CONFIG_KEY;
 		$layout = @$userConf->{$layoutKey} ?? null;
 
 	 if ($layout === null) {
-            $oldLayoutKey = DashboardViewExtension::LAYOUT_CONFIG_KEY_V1;
+            $oldLayoutKey = FreshVibesViewExtension::LAYOUT_CONFIG_KEY_V1;
             $oldLayout = @$userConf->{$oldLayoutKey} ?? null;
             if (is_array($oldLayout) && !empty($oldLayout)) {
                     $layout = [[
                             'id' => 'tab-' . microtime(true),
-                            'name' => _t('ext.DashboardView.default_tab_name', 'Main'),
+                            'name' => _t('ext.FreshVibesView.default_tab_name', 'Main'),
                             'icon' => '',
                             'icon_color' => '',
                             'num_columns' => count($oldLayout),
@@ -28,7 +28,7 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
             } else {
                     $layout = [[
                             'id' => 'tab-' . microtime(true),
-                            'name' => _t('ext.DashboardView.default_tab_name', 'Main'),
+                            'name' => _t('ext.FreshVibesView.default_tab_name', 'Main'),
                             'icon' => '',
                             'icon_color' => '',
                             'num_columns' => 3,
@@ -42,7 +42,7 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 
    private function saveLayout(array $layout): void {
 		$userConf = FreshRSS_Context::userConf();
-		$userConf->_attribute(DashboardViewExtension::LAYOUT_CONFIG_KEY, $layout);
+		$userConf->_attribute(FreshVibesViewExtension::LAYOUT_CONFIG_KEY, $layout);
 		$userConf->save();
 	}
 
@@ -60,7 +60,7 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 		$feeds = $feedDAO->listFeeds();
 		$userConf = FreshRSS_Context::userConf();
         // FIX: Access 'extensions' as an array and provide a default to prevent errors
-        $extConf = $userConf->extensions[DashboardViewExtension::EXT_ID] ?? new stdClass();
+        $extConf = $userConf->extensions[FreshVibesViewExtension::EXT_ID] ?? new stdClass();
 		$stateAll = defined('FreshRSS_Entry::STATE_ALL') ? FreshRSS_Entry::STATE_ALL : 0;
 		$feedsData = [];
 
@@ -68,14 +68,14 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 
 		foreach ($feeds as $feed) {
 			$entries = []; $feedId = $feed->id();
-			$limitKey = DashboardViewExtension::LIMIT_CONFIG_PREFIX . $feedId;
-			$fontSizeKey = DashboardViewExtension::FONT_SIZE_CONFIG_PREFIX . $feedId;
+			$limitKey = FreshVibesViewExtension::LIMIT_CONFIG_PREFIX . $feedId;
+			$fontSizeKey = FreshVibesViewExtension::FONT_SIZE_CONFIG_PREFIX . $feedId;
 
-			$limit = $userConf->attributeInt($limitKey, DashboardViewExtension::DEFAULT_ARTICLES_PER_FEED);
-			if (!in_array($limit, DashboardViewExtension::ALLOWED_LIMIT_VALUES, true)) { $limit = DashboardViewExtension::DEFAULT_ARTICLES_PER_FEED; }
+			$limit = $userConf->attributeInt($limitKey, FreshVibesViewExtension::DEFAULT_ARTICLES_PER_FEED);
+			if (!in_array($limit, FreshVibesViewExtension::ALLOWED_LIMIT_VALUES, true)) { $limit = FreshVibesViewExtension::DEFAULT_ARTICLES_PER_FEED; }
 
-			$fontSize = $userConf->attributeString($fontSizeKey, DashboardViewExtension::DEFAULT_FONT_SIZE);
-			if (!in_array($fontSize, DashboardViewExtension::ALLOWED_FONT_SIZES)) { $fontSize = DashboardViewExtension::DEFAULT_FONT_SIZE; }
+			$fontSize = $userConf->attributeString($fontSizeKey, FreshVibesViewExtension::DEFAULT_FONT_SIZE);
+			if (!in_array($fontSize, FreshVibesViewExtension::ALLOWED_FONT_SIZES)) { $fontSize = FreshVibesViewExtension::DEFAULT_FONT_SIZE; }
 
 			try {
 				$entryGenerator = $entryDAO->listWhere('f', $feedId, $stateAll, null, '0', '0', 'date', 'DESC', '0', 0, $limit, 0, true);
@@ -104,7 +104,7 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 			];
 		}
 
-		$controllerParam = strtolower(DashboardViewExtension::CONTROLLER_NAME_BASE);
+		$controllerParam = strtolower(FreshVibesViewExtension::CONTROLLER_NAME_BASE);
 		@$this->view->feedsData = $feedsData;
 		@$this->view->getLayoutUrl = Minz_Url::display(['c' => $controllerParam, 'a' => 'getlayout'], true);
 		@$this->view->saveLayoutUrl = Minz_Url::display(['c' => $controllerParam, 'a' => 'savelayout'], true);
@@ -112,7 +112,7 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 		@$this->view->tabActionUrl = Minz_Url::display(['c' => $controllerParam, 'a' => 'updatetab'], true);
 		@$this->view->moveFeedUrl = Minz_Url::display(['c' => $controllerParam, 'a' => 'movefeed'], true);
 		@$this->view->setActiveTabUrl = Minz_Url::display(['c' => $controllerParam, 'a' => 'setactivetab'], true);
-		@$this->view->rss_title = _t('ext.DashboardView.title');
+            @$this->view->rss_title = _t('ext.FreshVibesView.title');
         
         @$this->view->refreshEnabled = $extConf->refresh_enabled ?? false;
         @$this->view->refreshInterval = $extConf->refresh_interval ?? 15;
@@ -125,7 +125,7 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 		foreach ($tags as $tag) { $nbUnreadTags += $tag->nbUnread(); }
 		@$this->view->nbUnreadTags = $nbUnreadTags;
 
-		$this->view->_path(DashboardViewExtension::CONTROLLER_NAME_BASE . '/index.phtml');
+		$this->view->_path(FreshVibesViewExtension::CONTROLLER_NAME_BASE . '/index.phtml');
 	}
 
 	public function getLayoutAction() {
@@ -133,7 +133,7 @@ class FreshExtension_dbview_Controller extends Minz_ActionController {
 		header('Content-Type: application/json');
 		try {
 			$layout = $this->getLayout();
-			$activeTabKey = DashboardViewExtension::ACTIVE_TAB_CONFIG_KEY;
+			$activeTabKey = FreshVibesViewExtension::ACTIVE_TAB_CONFIG_KEY;
 			$activeTabId = @FreshRSS_Context::userConf()->{$activeTabKey} ?? null;
 			$activeTabExists = false;
 			if ($activeTabId) {
@@ -189,7 +189,7 @@ public function saveLayoutAction() {
 				case 'add':
 					 $newTab = [
                                         'id' => 'tab-'.microtime(true).rand(),
-                                        'name' => _t('ext.DashboardView.new_tab_name', 'New Tab'),
+                                        'name' => _t('ext.FreshVibesView.new_tab_name', 'New Tab'),
                                         'icon' => '',
                                         'icon_color' => '',
                                         'num_columns' => 3,
@@ -272,7 +272,7 @@ public function saveLayoutAction() {
 	public function setActiveTabAction() {
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['tab_id'])) { http_response_code(400); exit; }
 		try {
-			FreshRSS_Context::userConf()->_attribute(DashboardViewExtension::ACTIVE_TAB_CONFIG_KEY, $_POST['tab_id']);
+			FreshRSS_Context::userConf()->_attribute(FreshVibesViewExtension::ACTIVE_TAB_CONFIG_KEY, $_POST['tab_id']);
 			FreshRSS_Context::userConf()->save();
 			echo json_encode(['status' => 'success']);
 		} catch (Exception $e) { http_response_code(500); }
@@ -284,11 +284,11 @@ public function saveLayoutAction() {
 		$feedId = Minz_Request::paramInt('feed_id');
 		$limit = Minz_Request::paramInt('limit');
 		$fontSize = Minz_Request::paramString('font_size');
-		if ($feedId <= 0 || !in_array($limit, DashboardViewExtension::ALLOWED_LIMIT_VALUES, true) || !in_array($fontSize, DashboardViewExtension::ALLOWED_FONT_SIZES)) { http_response_code(400); exit; }
+		if ($feedId <= 0 || !in_array($limit, FreshVibesViewExtension::ALLOWED_LIMIT_VALUES, true) || !in_array($fontSize, FreshVibesViewExtension::ALLOWED_FONT_SIZES)) { http_response_code(400); exit; }
 		try {
 			$userConf = FreshRSS_Context::userConf();
-			$userConf->_attribute(DashboardViewExtension::LIMIT_CONFIG_PREFIX . $feedId, $limit);
-			$userConf->_attribute(DashboardViewExtension::FONT_SIZE_CONFIG_PREFIX . $feedId, $fontSize);
+			$userConf->_attribute(FreshVibesViewExtension::LIMIT_CONFIG_PREFIX . $feedId, $limit);
+			$userConf->_attribute(FreshVibesViewExtension::FONT_SIZE_CONFIG_PREFIX . $feedId, $fontSize);
 			$userConf->save();
 			echo json_encode(['status' => 'success']);
 		} catch (Exception $e) { http_response_code(500); }
@@ -354,8 +354,8 @@ public function saveLayoutAction() {
 			echo json_encode(['status' => 'success', 'new_layout' => $layout]);
 		} catch (Exception $e) {
 			http_response_code(500);
-			// Optional: log the error message for debugging
-			// error_log('DashboardView moveFeedAction error: ' . $e->getMessage());
+                        // Optional: log the error message for debugging
+                        // error_log('FreshVibesView moveFeedAction error: ' . $e->getMessage());
 			echo json_encode(['status' => 'error', 'message' => 'An internal error occurred.']);
 		}
 		exit;
@@ -371,7 +371,7 @@ public function saveLayoutAction() {
 			
 			// Iterate over all configuration settings and find the ones for this extension
 			foreach ($userConf as $key => $value) {
-				if (strpos($key, DashboardViewExtension::EXT_ID) === 0) {
+				if (strpos($key, FreshVibesViewExtension::EXT_ID) === 0) {
 					$dashboardSettings[$key] = $value;
 				}
 			}
@@ -398,20 +398,20 @@ public function saveLayoutAction() {
 
 			// Find all keys related to this extension to prepare for deletion
 			foreach ($userConf as $key => $value) {
-				if (strpos($key, DashboardViewExtension::EXT_ID) === 0) {
+				if (strpos($key, FreshVibesViewExtension::EXT_ID) === 0) {
 					$keys_to_delete[] = $key;
 				}
 			}
 
 			if (empty($keys_to_delete)) {
-				$message = 'No DashboardView settings were found to delete. The configuration is already clean.';
+                                $message = 'No FreshVibesView settings were found to delete. The configuration is already clean.';
 			} else {
 				foreach ($keys_to_delete as $key) {
 					unset($userConf->{$key});
 				}
 		
 				$userConf->save();
-				$message = 'SUCCESS: All ' . count($keys_to_delete) . ' DashboardView settings have been reset.';
+                                $message = 'SUCCESS: All ' . count($keys_to_delete) . ' FreshVibesView settings have been reset.';
 			}
 
 			header('Content-Type: text/plain');

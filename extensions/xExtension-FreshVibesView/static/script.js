@@ -1,22 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
-	const dashboardView = document.querySelector('.dashboard-view');
-	if (dashboardView) {
-		initializeDashboard(dashboardView);
-	}
+        const freshvibesView = document.querySelector('.freshvibes-view');
+        if (freshvibesView) {
+                initializeDashboard(freshvibesView);
+        }
 });
 
-function initializeDashboard(dashboardView) {
+function initializeDashboard(freshvibesView) {
 	// --- STATE ---
 	let state = { layout: [], feeds: {}, activeTabId: null, allPlacedFeedIds: new Set() };
 
 	// --- DOM & CONFIG ---
-    const { getLayoutUrl, saveLayoutUrl, tabActionUrl, setActiveTabUrl, csrfToken, saveFeedSettingsUrl, moveFeedUrl, refreshEnabled, refreshInterval, dashboardUrl } = dashboardView.dataset;
-    const trEl = document.getElementById('dbview-i18n');
+    const { xextensionFreshvibesviewGetLayoutUrl: getLayoutUrl, xextensionFreshvibesviewSaveLayoutUrl: saveLayoutUrl, xextensionFreshvibesviewTabActionUrl: tabActionUrl, xextensionFreshvibesviewSetActiveTabUrl: setActiveTabUrl, xextensionFreshvibesviewCsrfToken: csrfToken, xextensionFreshvibesviewSaveFeedSettingsUrl: saveFeedSettingsUrl, xextensionFreshvibesviewMoveFeedUrl: moveFeedUrl, xextensionFreshvibesviewRefreshEnabled: refreshEnabled, xextensionFreshvibesviewRefreshInterval: refreshInterval, xextensionFreshvibesviewDashboardUrl: dashboardUrl } = freshvibesView.dataset;
+    const trEl = document.getElementById('freshvibes-i18n');
     const tr = trEl ? JSON.parse(trEl.textContent) : {};
     if (trEl) trEl.remove();
     
-	const tabsContainer = dashboardView.querySelector('.dashboard-tabs');
-	const panelsContainer = dashboardView.querySelector('.dashboard-panels');
+        const tabsContainer = freshvibesView.querySelector('.freshvibes-tabs');
+        const panelsContainer = freshvibesView.querySelector('.freshvibes-panels');
 	const templates = {
 		tabLink: document.getElementById('template-tab-link'),
 		tabPanel: document.getElementById('template-tab-panel'),
@@ -102,13 +102,13 @@ function initializeDashboard(dashboardView) {
 		const panel = document.getElementById(tab.id);
 		if (!panel) return;
 
-		const columnsContainer = panel.querySelector('.dashboard-columns');
+                const columnsContainer = panel.querySelector('.freshvibes-columns');
 		columnsContainer.innerHTML = '';
-		columnsContainer.className = `dashboard-columns columns-${tab.num_columns}`;
+                columnsContainer.className = `freshvibes-columns columns-${tab.num_columns}`;
 		
 		const columns = Array.from({ length: tab.num_columns }, (_, i) => {
-			const colDiv = document.createElement('div');
-			colDiv.className = 'dashboard-column';
+                        const colDiv = document.createElement('div');
+                        colDiv.className = 'freshvibes-column';
 			colDiv.dataset.columnId = `col${i + 1}`;
 			columnsContainer.appendChild(colDiv);
 			return colDiv;
@@ -169,7 +169,7 @@ function initializeDashboard(dashboardView) {
 		}
 		container.querySelector('.feed-title').textContent = feed.name;
 		
-		const contentDiv = container.querySelector('.dashboard-container-content');
+                const contentDiv = container.querySelector('.freshvibes-container-content');
 		if (feed.entries && Array.isArray(feed.entries) && feed.entries.length > 0 && !feed.entries.error) {
 			const ul = document.createElement('ul');
                 feed.entries.forEach(entry => {
@@ -237,11 +237,11 @@ function initializeDashboard(dashboardView) {
 		if (!tabId) return;
 		state.activeTabId = tabId;
 
-		tabsContainer.querySelectorAll('.dashboard-tab').forEach(t => t.classList.toggle('active', t.dataset.tabId === tabId));
-		panelsContainer.querySelectorAll('.dashboard-panel').forEach(p => {
-			const isActive = p.id === tabId;
-			p.classList.toggle('active', isActive);
-			if (isActive && p.querySelector('.dashboard-columns').innerHTML === '') {
+            tabsContainer.querySelectorAll('.freshvibes-tab').forEach(t => t.classList.toggle('active', t.dataset.tabId === tabId));
+            panelsContainer.querySelectorAll('.freshvibes-panel').forEach(p => {
+                        const isActive = p.id === tabId;
+                        p.classList.toggle('active', isActive);
+                        if (isActive && p.querySelector('.freshvibes-columns').innerHTML === '') {
 				renderTabContent(state.layout.find(t => t.id === tabId));
 			}
 		});
@@ -253,18 +253,18 @@ function initializeDashboard(dashboardView) {
 	function initializeSortable(columns) {
 		if (typeof Sortable === 'undefined') return;
 		columns.forEach(column => {
-			new Sortable(column, {
-				group: 'dashboard-feeds',
-				animation: 150,
-				handle: '.dashboard-container-header',
-				onEnd: () => {
-					const panel = column.closest('.dashboard-panel');
-					const tabId = panel.id;
-					const layoutData = {};
-					panel.querySelectorAll('.dashboard-column').forEach(col => {
-						const colId = col.dataset.columnId;
-						layoutData[colId] = Array.from(col.querySelectorAll('.dashboard-container')).map(c => c.dataset.feedId);
-					});
+                        new Sortable(column, {
+                                group: 'freshvibes-feeds',
+                                animation: 150,
+                                handle: '.freshvibes-container-header',
+                                onEnd: () => {
+                                        const panel = column.closest('.freshvibes-panel');
+                                        const tabId = panel.id;
+                                        const layoutData = {};
+                                        panel.querySelectorAll('.freshvibes-column').forEach(col => {
+                                                const colId = col.dataset.columnId;
+                                                layoutData[colId] = Array.from(col.querySelectorAll('.freshvibes-container')).map(c => c.dataset.feedId);
+                                        });
 
                     const tab = state.layout.find(t => t.id === tabId);
                     if (tab) tab.columns = layoutData;
@@ -276,8 +276,8 @@ function initializeDashboard(dashboardView) {
 	}
 
 	// --- EVENT LISTENERS ---
-	function setupEventListeners() {
-		dashboardView.addEventListener('click', e => {
+        function setupEventListeners() {
+                freshvibesView.addEventListener('click', e => {
 			if (e.target.closest('.tab-add-button')) {
 				api(tabActionUrl, { operation: 'add' }).then(data => {
 					if (data.status === 'success') {
@@ -289,7 +289,7 @@ function initializeDashboard(dashboardView) {
 				return;
 			}
 			
-			const tabLink = e.target.closest('.dashboard-tab');
+                        const tabLink = e.target.closest('.freshvibes-tab');
 			if (tabLink && !e.target.closest('.tab-settings-button, .tab-settings-menu')) {
 				activateTab(tabLink.dataset.tabId);
 				return;
@@ -303,7 +303,7 @@ function initializeDashboard(dashboardView) {
 			}
 
 			if (e.target.closest('.tab-action-delete')) {
-				const tabId = e.target.closest('.dashboard-tab').dataset.tabId;
+                                const tabId = e.target.closest('.freshvibes-tab').dataset.tabId;
 				if (confirm(tr.confirm_delete_tab || 'Are you sure you want to delete this tab? Feeds on it will be moved to your first tab.')) {
 					api(tabActionUrl, { operation: 'delete', tab_id: tabId }).then(data => {
 						if (data.status === 'success') {
@@ -319,7 +319,7 @@ function initializeDashboard(dashboardView) {
 			const columnsButton = e.target.closest('[data-columns]');
 			if (columnsButton) {
 				const numCols = columnsButton.dataset.columns;
-				const tabId = columnsButton.closest('.dashboard-tab').dataset.tabId;
+                                const tabId = columnsButton.closest('.freshvibes-tab').dataset.tabId;
 				api(tabActionUrl, { operation: 'set_columns', tab_id: tabId, value: numCols }).then(data => {
 					if (data.status === 'success') {
 						state.layout = data.new_layout;
@@ -340,15 +340,15 @@ function initializeDashboard(dashboardView) {
 
             const moveButton = e.target.closest('.feed-move-to-list button');
             if (moveButton) {
-                const container = moveButton.closest('.dashboard-container');
+                const container = moveButton.closest('.freshvibes-container');
                 const feedId = container.dataset.feedId;
                 const sourceTabId = container.dataset.sourceTabId;
                 const targetTabId = moveButton.dataset.targetTabId;
 
-				if (!moveFeedUrl) {
-					console.error('DashboardView: moveFeedUrl is not defined in the dataset. Cannot move feed.');
-					return;
-				}
+                                if (!moveFeedUrl) {
+                                        console.error('FreshVibesView: moveFeedUrl is not defined in the dataset. Cannot move feed.');
+                                        return;
+                                }
 
                 api(moveFeedUrl, { feed_id: feedId, source_tab_id: sourceTabId, target_tab_id: targetTabId })
                 .then(data => {
@@ -363,8 +363,8 @@ function initializeDashboard(dashboardView) {
 						const targetPanel = document.getElementById(targetTabId);
 
 						// If target tab is active, re-render its content. Otherwise, just clear it.
-						if (targetTab && targetPanel) {
-							targetPanel.querySelector('.dashboard-columns').innerHTML = '';
+                                                if (targetTab && targetPanel) {
+                                                        targetPanel.querySelector('.freshvibes-columns').innerHTML = '';
 							if (targetPanel.classList.contains('active')) {
 								renderTabContent(targetTab);
 							}
@@ -376,7 +376,7 @@ function initializeDashboard(dashboardView) {
 			
 			if (e.target.closest('.feed-settings-save')) {
 				const editor = e.target.closest('.feed-settings-editor');
-				const container = editor.closest('.dashboard-container');
+                                const container = editor.closest('.freshvibes-container');
 				const feedId = container.dataset.feedId;
 				const limit = editor.querySelector('.feed-limit-select').value;
 				const fontSize = editor.querySelector('.feed-fontsize-select').value;
@@ -391,7 +391,7 @@ function initializeDashboard(dashboardView) {
 						if (oldLimit !== parseInt(limit, 10)) {
 							location.reload();
 						} else {
-							container.className = 'dashboard-container';
+                                                        container.className = 'freshvibes-container';
 							container.classList.toggle('fontsize-small', fontSize === 'small');
 							container.classList.toggle('fontsize-large', fontSize === 'large');
 						}
@@ -415,7 +415,7 @@ function initializeDashboard(dashboardView) {
 
 		 tabsContainer.addEventListener('change', e => {
                         if (e.target.classList.contains('tab-icon-input') || e.target.classList.contains('tab-icon-color-input')) {
-                                const tabEl = e.target.closest('.dashboard-tab');
+                                const tabEl = e.target.closest('.freshvibes-tab');
                                 if (!tabEl) return;
                                 const tabId = tabEl.dataset.tabId;
                                 const iconVal = tabEl.querySelector('.tab-icon-input').value.trim();
@@ -436,7 +436,7 @@ function initializeDashboard(dashboardView) {
 			const tabNameSpan = e.target.closest('.tab-name');
 			if (!tabNameSpan) return;
 			
-			const tabElement = tabNameSpan.closest('.dashboard-tab');
+                        const tabElement = tabNameSpan.closest('.freshvibes-tab');
 			if (!tabElement) return;
 
 			const tabId = tabElement.dataset.tabId;
@@ -523,7 +523,7 @@ function initializeDashboard(dashboardView) {
             setupAutoRefresh();
 		})
 		.catch(error => {
-            console.error('DashboardView: Could not initialize.', error);
-            dashboardView.innerHTML = '<p>' + (tr.error_dashboard_init || 'Error loading dashboard. Please check the console and try again.') + '</p>';
-		});
+            console.error('FreshVibesView: Could not initialize.', error);
+            freshvibesView.innerHTML = '<p>' + (tr.error_dashboard_init || 'Error loading dashboard. Please check the console and try again.') + '</p>';
+                });
 }

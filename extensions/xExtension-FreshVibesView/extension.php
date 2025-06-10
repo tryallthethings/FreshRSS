@@ -1,10 +1,10 @@
 <?php // FreshRSS-Netvibes/extension.php
 
-class DashboardViewExtension extends Minz_Extension {
+class FreshVibesViewExtension extends Minz_Extension {
 
 	// --- Constants ---
-	public const CONTROLLER_NAME_BASE = 'dbview';
-	public const EXT_ID = 'DashboardView';
+        public const CONTROLLER_NAME_BASE = 'freshvibes';
+        public const EXT_ID = 'FreshVibesView';
 	// Config Keys
 	public const LAYOUT_CONFIG_KEY_V1 = self::EXT_ID . '_layout'; // Legacy
 	public const LAYOUT_CONFIG_KEY = self::EXT_ID . '_layout_v2';   // New key for tabbed layout
@@ -34,7 +34,7 @@ class DashboardViewExtension extends Minz_Extension {
         Minz_View::appendScript($this->getFileUrl('script.js', 'js'), false, true, false);
 	}
 
-	/** Hook callback to register the dashboard as a reading mode. */
+        /** Hook callback to register the view as a reading mode. */
 	public static function addReadingMode(array $readingModes): array {
 		$urlParams = array_merge(Minz_Request::currentRequest(), [
 			'c' => self::CONTROLLER_NAME_BASE,
@@ -43,9 +43,9 @@ class DashboardViewExtension extends Minz_Extension {
 		$isActive = Minz_Request::controllerName() === self::CONTROLLER_NAME_BASE
 			&& Minz_Request::actionName() === 'index';
 
-		$mode = new FreshRSS_ReadingMode(
-			'view-dashboard',
-			_t(self::EXT_ID . '.title', 'Dashboard'),
+                $mode = new FreshRSS_ReadingMode(
+                        'view-freshvibes',
+                        _t(self::EXT_ID . '.title', 'Fresh Vibes View'),
 			$urlParams,
 			$isActive
 		);

@@ -1,8 +1,8 @@
 <?php
-// English translations for DashboardView extension
+// English translations for FreshVibesView extension
 return array(
-    'DashboardView' => array(
-        'title' => 'Dashboard',
+    'FreshVibesView' => array(
+        'title' => 'Fresh Vibes View',
         'default_tab_name' => 'Main',
         'new_tab_name' => 'New Tab',
         'feed_settings' => 'Feed settings',
