@@ -19,15 +19,19 @@ class DashboardViewExtension extends Minz_Extension {
 	public const DEFAULT_FONT_SIZE = 'regular';
 	// --- End Constants ---
 
+    public function getId(): string {
+        return self::EXT_ID;
+    }
+
 	public function init(): void {
 		$this->registerTranslates();
 		$this->registerController(self::CONTROLLER_NAME_BASE);
 		$this->registerViews();
 		$this->registerHook('nav_reading_modes', [self::class, 'addReadingMode']);
 
-		Minz_View::appendStyle($this->getFileUrl('style.css', 'css'));
-		Minz_View::appendScript($this->getFileUrl('Sortable.min.js', 'js'), '', false);
-		Minz_View::appendScript($this->getFileUrl('script.js', 'js'), '', false);
+        Minz_View::appendStyle($this->getFileUrl('style.css', 'css'));
+        Minz_View::appendScript($this->getFileUrl('Sortable.min.js', 'js'), false, true, false);
+        Minz_View::appendScript($this->getFileUrl('script.js', 'js'), false, true, false);
 	}
 
 	/** Hook callback to register the dashboard as a reading mode. */
@@ -50,37 +54,49 @@ class DashboardViewExtension extends Minz_Extension {
 		return $readingModes;
 	}
 
-  /**
+     /**
 	 * Handles the logic when the configuration form is submitted.
 	 */
-	public function handleConfigureAction(): void {
-		$this->registerTranslates();
+	 #[\Override]
+    public function handleConfigureAction(): void {
+        $this->registerTranslates();
 
-		if (Minz_Request::isPost()) {
-			$userConf = FreshRSS_Context::userConf();
+        if (Minz_Request::isPost()) {
+            $userConf  = FreshRSS_Context::userConf();
+            $extId     = self::EXT_ID;
 
-			if (!isset($userConf->extensions[$this->getId()])) {
-				$userConf->extensions[$this->getId()] = new stdClass();
-			}
-			$extConf = $userConf->extensions[$this->getId()];
+            // pull out the whole extensions object
+            $extensions = $userConf->extensions;
+            if (!isset($extensions->{$extId}) || !is_object($extensions->{$extId})) {
+                $extensions->{$extId} = new \stdClass();
+            }
+            $extConf = $extensions->{$extId};
 
-			$extConf->refresh_enabled = Minz_Request::param('refresh_enabled') === 'on';
-			$extConf->refresh_interval = Minz_Request::paramInt('refresh_interval', 15);
-			$extConf->date_format = Minz_Request::paramString('date_format', 'Y-m-d H:i');
-			
-			$userConf->save();
-			Minz_Session::add('feedback', ['success', _t('feedback.success.save')]);
-			Minz_Url::redirect(Minz_Url::display(['c' => 'configure', 'a' => 'extension', 'e' => $this->getId()]));
-		}
-	}
+            $extConf->refresh_enabled  = Minz_Request::param('refresh_enabled') === 'on';
+            $extConf->refresh_interval = Minz_Request::paramInt('refresh_interval', 15);
+            $extConf->date_format      = Minz_Request::paramString('date_format', 'Y-m-d H:i');
 
+            $userConf->extensions = $extensions;
+            $userConf->save();
+            Minz_Session::add('feedback', ['success', _t('feedback.success.save')]);
+
+            // ← corrected controller/action here
+            Minz_Url::redirect(
+                Minz_Url::display([
+                    'c' => 'extension',
+                    'a' => 'configure',
+                    'e' => $extId,
+                ])
+            );
+        }
+    }
 	/**
 	 * A helper to get a specific setting's value for this extension.
 	 * @param string $key The setting key.
 	 * @param mixed $default The default value to return if not set.
 	 * @return mixed The setting value.
 	 */
-public function getSetting(string $key, $default = null) {
+    public function getSetting(string $key, $default = null) {
 		$userConf = FreshRSS_Context::userConf();
 		$extId = $this->getName();
 		
