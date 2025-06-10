@@ -80,9 +80,14 @@ class DashboardViewExtension extends Minz_Extension {
 	 * @param mixed $default The default value to return if not set.
 	 * @return mixed The setting value.
 	 */
-	public function getSetting(string $key, $default = null) {
+public function getSetting(string $key, $default = null) {
 		$userConf = FreshRSS_Context::userConf();
-		// We use the null coalescing operator to safely access the values
-		return $userConf->extensions[$this->getId()]->{$key} ?? $default;
+		$extId = $this->getName();
+		
+		if (!isset($userConf->extensions[$extId])) {
+			return $default;
+		}
+
+		return $userConf->extensions[$extId]->{$key} ?? $default;
 	}
 }
