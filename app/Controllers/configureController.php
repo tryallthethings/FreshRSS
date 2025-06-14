@@ -160,6 +160,7 @@ class FreshRSS_configure_Controller extends FreshRSS_ActionController {
 			Minz_Request::good(_t('feedback.conf.updated'), [ 'c' => 'configure', 'a' => 'reading' ]);
 		}
 
+		$this->view->viewModes = FreshRSS_ViewMode::getAllModes();
 		FreshRSS_View::prependTitle(_t('conf.reading.title') . ' · ');
 	}
 
