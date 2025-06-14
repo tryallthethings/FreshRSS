@@ -16,44 +16,18 @@ class FreshRSS_index_Controller extends FreshRSS_ActionController {
 	 */
 	public function indexAction(): void {
 		$preferred_output = FreshRSS_Context::userConf()->view_mode;
-		$viewModes = FreshRSS_ViewMode::getAllModes();
+		$viewMode = FreshRSS_ViewMode::getAllModes()[$preferred_output] ?? null;
 
-		$modeIsValid = false;
-		$customMode = null;
-
-		// Check if the preferred view mode is valid and find it if it's a custom one
-		foreach ($viewModes as $mode) {
-			if ($mode->id() === $preferred_output) {
-				$modeIsValid = true;
-				if ($mode->controller() !== 'index') {
-					$customMode = $mode;
-				}
-				break;
-			}
-		}
-
-		// If the preferred mode was not found, it's invalid.
-		// Reset it to 'normal' and save the configuration.
-		if (!$modeIsValid) {
+		// Fallback to 'normal' if the preferred mode was not found
+		if ($viewMode === null) {
 			Minz_Request::setBadNotification(_t('feedback.extensions.invalid_view_mode', $preferred_output));
-			$preferred_output = 'normal';
-			FreshRSS_Context::userConf()->view_mode = $preferred_output;
-			FreshRSS_Context::userConf()->save();
-			$customMode = null; // Ensure customMode is null after a reset
+			$viewMode = FreshRSS_ViewMode::getAllModes()['normal'];
 		}
 
-		if ($customMode !== null) {
-			Minz_Request::forward([
-				'c' => $customMode->controller(),
-				'a' => $customMode->action(),
-			]);
-		} else {
-			// Default behavior for built-in modes or after a reset
-			Minz_Request::forward([
-				'c' => 'index',
-				'a' => $preferred_output,
-			]);
-		}
+		Minz_Request::forward([
+			'c' => $viewMode->controller(),
+			'a' => $viewMode->action(),
+		]);
 	}
 
 	/**

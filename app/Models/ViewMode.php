@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * Represents a view mode option for the reading configuration
  */
-class FreshRSS_ViewMode {
+final class FreshRSS_ViewMode {
 	private string $id;
 	private string $name;
 	private string $controller;
@@ -34,18 +34,18 @@ class FreshRSS_ViewMode {
 	}
 
 	/**
-	 * @return array<FreshRSS_ViewMode>
+	 * @return array<string,FreshRSS_ViewMode> Mode ID => FreshRSS_ViewMode
 	 */
 	public static function getDefaultModes(): array {
 		return [
-			new self('normal', _t('conf.reading.view.normal')),
-			new self('reader', _t('conf.reading.view.reader')),
-			new self('global', _t('conf.reading.view.global')),
+			'normal' => new self(id: 'normal', name: _t('conf.reading.view.normal'), controller: 'index', action: 'normal'),
+			'reader' => new self(id: 'reader', name: _t('conf.reading.view.reader'), controller: 'index', action: 'reader'),
+			'global' => new self(id: 'global', name: _t('conf.reading.view.global'), controller: 'index', action: 'global'),
 		];
 	}
 
 	/**
-	 * @return array<FreshRSS_ViewMode>
+	 * @return array<string,FreshRSS_ViewMode> Mode ID => FreshRSS_ViewMode
 	 */
 	public static function getAllModes(): array {
 		$modes = self::getDefaultModes();
@@ -55,7 +55,7 @@ class FreshRSS_ViewMode {
 		if (is_array($extensionModes)) {
 			foreach ($extensionModes as $mode) {
 				if ($mode instanceof FreshRSS_ViewMode) {
-					$modes[] = $mode;
+					$modes[$mode->id()] = $mode;
 				}
 			}
 		}
