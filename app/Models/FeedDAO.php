@@ -307,7 +307,7 @@ SQL;
 		if ($stm !== false) {
 			while (is_array($row = $stm->fetch(PDO::FETCH_ASSOC))) {
 				/** @var array{id:int,url:string,kind:int,category:int,name:string,website:string,description:string,lastUpdate:int,priority?:int,
-				 *	pathEntries?:string,httpAuth:string,error:int|bool,ttl?:int,attributes?:string} $row */
+				 *	pathEntries?:string,httpAuth:string,error:int,ttl?:int,attributes?:string} $row */
 				yield $row;
 			}
 		} else {
@@ -327,14 +327,21 @@ SQL;
 		if (!is_array($res)) {
 			return null;
 		}
-		$feeds = self::daoToFeeds($res);	// @phpstan-ignore argument.type
+		/** @var list<array{id:int,url:string,kind:int,category:int,name:string,website:string,description:string,lastUpdate:int,priority:int,
+		 * 	pathEntries:string,httpAuth:string,error:int,ttl:int,attributes?:string,cache_nbUnreads:int,cache_nbEntries:int}> $res */
+		$feeds = self::daoToFeeds($res);
 		return $feeds[$id] ?? null;
 	}
 
 	public function searchByUrl(string $url): ?FreshRSS_Feed {
 		$sql = 'SELECT * FROM `_feed` WHERE url=:url';
 		$res = $this->fetchAssoc($sql, [':url' => $url]);
-		return empty($res[0]) ? null : (current(self::daoToFeeds($res)) ?: null);	// @phpstan-ignore argument.type
+		if (!is_array($res)) {
+			return null;
+		}
+		/** @var list<array{id:int,url:string,kind:int,category:int,name:string,website:string,description:string,lastUpdate:int,priority:int,
+		 * 	pathEntries:string,httpAuth:string,error:int,ttl:int,attributes?:string,cache_nbUnreads:int,cache_nbEntries:int}> $res */
+		return empty($res[0]) ? null : (current(self::daoToFeeds($res)) ?: null);
 	}
 
 	/** @return list<int> */
@@ -349,7 +356,12 @@ SQL;
 	public function listFeeds(): array {
 		$sql = 'SELECT * FROM `_feed` ORDER BY name';
 		$res = $this->fetchAssoc($sql);
-		return $res == null ? [] : self::daoToFeeds($res);	// @phpstan-ignore argument.type
+		if (!is_array($res)) {
+			return [];
+		}
+		/** @var list<array{id:int,url:string,kind:int,category:int,name:string,website:string,description:string,lastUpdate:int,priority:int,
+		 * 	pathEntries:string,httpAuth:string,error:int,ttl:int,attributes?:string,cache_nbUnreads:int,cache_nbEntries:int}> $res */
+		return self::daoToFeeds($res);
 	}
 
 	/** @return array<string,string> */
@@ -361,8 +373,8 @@ SQL;
 			$sql .= 'WHERE id_feed=' . intval($id_feed);
 		}
 		$res = $this->fetchAssoc($sql);
-		/** @var list<array{'id_feed':int,'newest_item_us':string}>|null $res */
-		if ($res == null) {
+		/** @var list<array{id_feed:int,newest_item_us:string}>|null $res */
+		if ($res === null) {
 			return [];
 		}
 		$newestItemUsec = [];
@@ -386,7 +398,7 @@ SQL;
 		$stm = $this->pdo->query($sql);
 		if ($stm !== false && ($res = $stm->fetchAll(PDO::FETCH_ASSOC)) !== false) {
 			/** @var list<array{id?:int,url?:string,kind?:int,category?:int,name?:string,website?:string,description?:string,lastUpdate?:int,priority?:int,
-			 * pathEntries?:string,httpAuth?:string,error?:int|bool,ttl?:int,attributes?:string,cache_nbUnreads?:int,cache_nbEntries?:int}> $res */
+			 * pathEntries?:string,httpAuth?:string,error?:int,ttl?:int,attributes?:string,cache_nbUnreads?:int,cache_nbEntries?:int}> $res */
 			return self::daoToFeeds($res);
 		} else {
 			$info = $this->pdo->errorInfo();
@@ -425,7 +437,9 @@ SQL;
 		if (!is_array($res)) {
 			return [];
 		}
-		$feeds = self::daoToFeeds($res);	// @phpstan-ignore argument.type
+		/** @var list<array{id:int,url:string,kind:int,category:int,name:string,website:string,description:string,lastUpdate:int,priority:int,
+		 * 	pathEntries:string,httpAuth:string,error:int,ttl:int,attributes?:string,cache_nbUnreads:int,cache_nbEntries:int}> $res */
+		$feeds = self::daoToFeeds($res);
 		uasort($feeds, static fn(FreshRSS_Feed $a, FreshRSS_Feed $b) => strnatcasecmp($a->name(), $b->name()));
 		return $feeds;
 	}
