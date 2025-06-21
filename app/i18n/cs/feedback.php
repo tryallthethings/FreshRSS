@@ -50,7 +50,7 @@ return array(
 			'ko' => '%s nelze povolit. Pro podrobnosti <a href="%s">zkontrolujte protokoly FreshRSS</a>.',
 			'ok' => '%s je nyní povoleno',
 		),
-		'invalid_view_mode' => 'Invalid view mode %s found. Setting Default view back to Normal view.',	// TODO
+		'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
 		'no_access' => 'Nemáte přístup k %s',
 		'not_enabled' => '%s není povoleno',
 		'not_found' => '%s neexistuje',

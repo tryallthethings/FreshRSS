@@ -50,7 +50,7 @@ return array(
 			'ko' => '%s non può essere abilitata. <a href="%s">Verifica i logs</a> per dettagli.',
 			'ok' => '%s è ora abilitata',
 		),
-		'invalid_view_mode' => 'Invalid view mode %s found. Setting Default view back to Normal view.',	// TODO
+		'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
 		'no_access' => 'Accesso negato a %s',
 		'not_enabled' => '%s non abilitato',
 		'not_found' => '%s non disponibile',

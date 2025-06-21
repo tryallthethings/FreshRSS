@@ -50,7 +50,7 @@ return array(
 			'ko' => '%s nevar būt ieslēgts. <a href="%s">Pārbaudiet FreshRSS žurnālu</a> priekš papildu informācijas.',
 			'ok' => '%s ir tagad ieslēgts',
 		),
-		'invalid_view_mode' => 'Invalid view mode %s found. Setting Default view back to Normal view.',	// TODO
+		'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
 		'no_access' => 'Jums nav piekļuves %s',
 		'not_enabled' => '%s nav ieslēgts',
 		'not_found' => '%s nēeksistē',

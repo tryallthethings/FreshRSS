@@ -50,7 +50,7 @@ return array(
 			'ko' => '%s не может быть включено. <a href="%s">Проверьте логи FreshRSS</a> для подробностей.',
 			'ok' => '%s теперь включено',
 		),
-		'invalid_view_mode' => 'Invalid view mode %s found. Setting Default view back to Normal view.',	// TODO
+		'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
 		'no_access' => 'У вас нет доступа к %s',
 		'not_enabled' => '%s не включено',
 		'not_found' => '%s не существует',

@@ -50,7 +50,7 @@ return array(
 			'ko' => '%sは有効にできません。 <a href="%s">FreshRSS のログを確認してください</a> 詳細が表示されます。',
 			'ok' => '%sは有効にされています。',
 		),
-		'invalid_view_mode' => 'Invalid view mode %s found. Setting Default view back to Normal view.',	// TODO
+		'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
 		'no_access' => 'あなたは%sにアクセスする権限がありません',
 		'not_enabled' => '%sは有効にされていません',
 		'not_found' => '%sは存在しません',

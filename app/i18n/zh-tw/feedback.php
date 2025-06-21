@@ -50,7 +50,7 @@ return array(
 			'ko' => '%s 啟用失敗。<a href="%s">檢查 FreshRSS 日誌</a> 查看詳情。',
 			'ok' => '%s 現已啟用',
 		),
-		'invalid_view_mode' => 'Invalid view mode %s found. Setting Default view back to Normal view.',	// TODO
+		'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
 		'no_access' => '你無權訪問 %s',
 		'not_enabled' => '%s 未啟用',
 		'not_found' => '%s 不存在',

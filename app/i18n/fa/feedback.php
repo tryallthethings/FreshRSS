@@ -50,7 +50,7 @@ return array(
 			'ko' => ' %s را نمی توان فعال کرد. برای جزئیات <a href="%s">گزارش‌های FreshRSS</a> را بررسی کنید.',
 			'ok' => ' %s اکنون فعال است',
 		),
-		'invalid_view_mode' => 'Invalid view mode %s found. Setting Default view back to Normal view.',	// TODO
+		'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
 		'no_access' => ' شما به %s دسترسی ندارید',
 		'not_enabled' => '%s فعال نیست',
 		'not_found' => '%s وجود ندارد',

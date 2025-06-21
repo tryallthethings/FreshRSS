@@ -50,7 +50,7 @@ return array(
 			'ko' => '%s etkinleştirilemedi. Ayrıntılar için <a href="%s">FreshRSS günlüklerini kontrol edin</a>.',
 			'ok' => '%s artık etkin',
 		),
-		'invalid_view_mode' => 'Invalid view mode %s found. Setting Default view back to Normal view.',	// TODO
+		'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
 		'no_access' => '%s üzerinde erişiminiz yok',
 		'not_enabled' => '%s etkin değil',
 		'not_found' => '%s mevcut değil',
