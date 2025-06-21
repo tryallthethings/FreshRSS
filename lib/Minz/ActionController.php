@@ -14,6 +14,7 @@ abstract class Minz_ActionController {
 	/** @var array<string,string> */
 	private static array $csp_default = [
 		'default-src' => "'self'",
+		'frame-ancestors' => "'none'",
 	];
 
 	/** @var array<string,string> */
@@ -66,7 +67,7 @@ abstract class Minz_ActionController {
 	 * @param array<string,string> $policies An array where keys are directives and values are sources.
 	 */
 	public static function _defaultCsp(array $policies): void {
-		if (!isset($policies['default-src'])) {
+		if (!isset($policies['default-src']) || !isset($policies['frame-ancestors'])) {
 			Minz_Log::warning('Default CSP policy is not declared', ADMIN_LOG);
 		}
 		self::$csp_default = $policies;

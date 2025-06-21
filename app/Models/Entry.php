@@ -845,7 +845,7 @@ HTML;
 	 * @param string $url Overridden URL. Will default to the entry URL.
 	 * @throws Minz_Exception
 	 */
-	public function getContentByParsing(string $url = '', int $maxRedirs = 3): string {
+	public function getContentByParsing(string $url = '', int $maxRedirs = 4): string {
 		$url = $url ?: htmlspecialchars_decode($this->link(), ENT_QUOTES);
 		$feed = $this->feed();
 		if ($url === '' || $feed === null || $feed->pathEntries() === '') {
@@ -872,12 +872,16 @@ HTML;
 		}
 
 		$cachePath = $feed->cacheFilename($url . '#' . $feed->pathEntries());
-		$html = httpGet($url, $cachePath, 'html', $feed->attributes(), $feed->curlOptions());
-		if (strlen($html) > 0) {
+		$response = httpGet($url, $cachePath, 'html', $feed->attributes(), $feed->curlOptions());
+		$html = $response['body'];
+		if ($html !== '') {
 			$doc = new DOMDocument();
 			$doc->loadHTML($html, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
 			$xpath = new DOMXPath($doc);
 
+			// Account for HTTP redirections
+			$url = $response['effective_url'] ?: $url;
+			$maxRedirs -= $response['redirect_count'];
 			if ($maxRedirs > 0) {
 				//Follow any HTML redirection
 				$metas = $xpath->query('//meta[@content]') ?: [];

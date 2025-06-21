@@ -788,7 +788,7 @@ class FreshRSS_Feed extends Minz_Model {
 		}
 
 		$httpAccept = $this->kind() === FreshRSS_Feed::KIND_HTML_XPATH_JSON_DOTNOTATION ? 'html' : 'json';
-		$content = httpGet($feedSourceUrl, $this->cacheFilename(), $httpAccept, $this->attributes(), $this->curlOptions());
+		$content = httpGet($feedSourceUrl, $this->cacheFilename(), $httpAccept, $this->attributes(), $this->curlOptions())['body'];
 		if (strlen($content) <= 0) {
 			return null;
 		}
@@ -846,7 +846,7 @@ class FreshRSS_Feed extends Minz_Model {
 		}
 
 		$httpAccept = $this->kind() === FreshRSS_Feed::KIND_XML_XPATH ? 'xml' : 'html';
-		$html = httpGet($feedSourceUrl, $this->cacheFilename(), $httpAccept, $this->attributes(), $this->curlOptions());
+		$html = httpGet($feedSourceUrl, $this->cacheFilename(), $httpAccept, $this->attributes(), $this->curlOptions())['body'];
 		if (strlen($html) <= 0) {
 			return null;
 		}

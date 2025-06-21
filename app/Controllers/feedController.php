@@ -1150,6 +1150,7 @@ class FreshRSS_feed_Controller extends FreshRSS_ActionController {
 
 		$this->_csp([
 			'default-src' => "'self'",
+			'frame-ancestors' => "'self'",
 			'frame-src' => '*',
 			'img-src' => '* data:',
 			'media-src' => '*',

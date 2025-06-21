@@ -48,7 +48,7 @@ if ($ico_mtime == false || $ico_mtime < $txt_mtime || ($ico_mtime < time() - (mt
 	}
 }
 
-header("Content-Security-Policy: default-src 'none'; img-src 'self'; style-src 'self';");
+header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; img-src 'self'; style-src 'self';");
 if (!httpConditional($ico_mtime, mt_rand(14, 21) * 86400, 2)) {
 	$ico_content_type = contentType($ico);
 	header('Content-Type: ' . $ico_content_type);

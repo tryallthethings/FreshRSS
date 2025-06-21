@@ -12,7 +12,7 @@
 
 return array(
 	'archiving' => array(
-		'_' => 'Mengarsipkan',
+		'_' => 'Pengarsipan',
 		'exception' => 'Pengecualian Pembersihan',
 		'help' => 'Lebih banyak opsi tersedia di pengaturan umpan individu',
 		'keep_favourites' => 'Jangan pernah hapus favorit',
