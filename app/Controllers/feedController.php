@@ -916,7 +916,7 @@ class FreshRSS_feed_Controller extends FreshRSS_ActionController {
 			Minz_Request::setGoodNotification(_t('feedback.sub.feed.actualizeds'));
 			// No layout in ajax request.
 			$this->view->_layout(null);
-		} elseif ($feed instanceof FreshRSS_Feed) {
+		} elseif ($feed instanceof FreshRSS_Feed && $id > 0) {
 			// Redirect to the main page with correct notification.
 			Minz_Request::good(_t('feedback.sub.feed.actualized', $feed->name()), [
 				'params' => ['get' => 'f_' . $id]
