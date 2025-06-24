@@ -211,21 +211,30 @@ function initializeDashboard(freshvibesView) {
 			unreadCount.title = tr.confirm_mark_tab_read || 'Mark all entries in this tab as read?';
 		}
 
-		// Add link to native FreshRSS category settings when in category mode
-		if (isCategoryMode && categorySettingsUrl && tab.id.startsWith('cat-')) {
+		// Add link to native FreshRSS category settings inside the menu
+		const settingsMenu = link.querySelector('.tab-settings-menu');
+		if (isCategoryMode && categorySettingsUrl && tab.id.startsWith('cat-') && settingsMenu) {
 			const categoryId = tab.id.substring(4);
 			const settingsLink = document.createElement('a');
 			settingsLink.href = categorySettingsUrl + categoryId;
 			settingsLink.className = 'fv-native-settings-link';
-			settingsLink.title = tr.edit_category_settings || 'Edit category in FreshRSS';
+			settingsLink.textContent = tr.edit_category_settings || 'Edit category in FreshRSS';
 			settingsLink.target = '_blank';
-			settingsLink.innerHTML = '⋮';
+			settingsLink.rel = 'noopener noreferrer';
 
-			const settingsContainer = link.querySelector('.tab-settings');
-			if (settingsContainer) {
-				settingsContainer.prepend(settingsLink);
+			const linkContainer = document.createElement('div');
+			linkContainer.className = 'fv-native-link-section';
+			linkContainer.appendChild(settingsLink);
+
+			// Append before the delete button for consistent placement
+			const deleteButton = settingsMenu.querySelector('.tab-action-delete');
+			if (deleteButton) {
+				settingsMenu.insertBefore(linkContainer, deleteButton);
+			} else {
+				settingsMenu.appendChild(linkContainer);
 			}
 		}
+
 
 		return link;
 	}
@@ -424,21 +433,6 @@ function initializeDashboard(freshvibesView) {
 				unreadBadge.title = tr.mark_all_read || 'Mark all as read';
 				headerElement.insertBefore(unreadBadge, headerElement.querySelector('.feed-settings'));
 			}
-
-			// Add link to native FreshRSS feed settings
-			if (feedSettingsUrl) {
-				const settingsLink = document.createElement('a');
-				settingsLink.href = feedSettingsUrl + feed.id;
-				settingsLink.className = 'fv-native-settings-link';
-				settingsLink.title = tr.edit_feed_settings || 'Edit feed in FreshRSS';
-				settingsLink.target = '_blank'; // Open in a new tab
-				settingsLink.innerHTML = '⋮';
-
-				const settingsButton = headerElement.querySelector('.feed-settings');
-				if (settingsButton) {
-					settingsButton.before(settingsLink);
-				}
-			}
 		}
 
 		const contentDiv = container.querySelector('.freshvibes-container-content');
@@ -551,6 +545,34 @@ function initializeDashboard(freshvibesView) {
 
 				wrapper.append(input, picker);
 				parentRow.appendChild(wrapper);
+			}
+
+			// Add link to native FreshRSS feed settings
+			if (feedSettingsUrl) {
+				const settingsLink = document.createElement('a');
+				settingsLink.href = feedSettingsUrl + feed.id;
+				settingsLink.className = 'fv-native-settings-link';
+				settingsLink.textContent = tr.edit_feed_settings || 'Edit feed in FreshRSS';
+				settingsLink.target = '_blank';
+				settingsLink.rel = 'noopener noreferrer';
+
+				const linkContainer = document.createElement('div');
+				linkContainer.className = 'fv-native-link-section'; // A new container for styling
+				linkContainer.appendChild(settingsLink);
+
+				const moveToSection = editor.querySelector('.feed-move-to');
+				if (moveToSection) {
+					// Insert before the 'move to' section
+					editor.insertBefore(linkContainer, moveToSection);
+				} else {
+					// If no 'move to' section, append before the save/cancel buttons
+					const buttonsRow = editor.querySelector('.setting-row-buttons');
+					if (buttonsRow) {
+						editor.insertBefore(linkContainer, buttonsRow);
+					} else {
+						editor.appendChild(linkContainer);
+					}
+				}
 			}
 
 			// Add move-to options if there are other tabs

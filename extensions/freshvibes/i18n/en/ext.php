@@ -102,5 +102,9 @@ return array(
 		'fv_invalid_height' => 'Invalid value. Use a number, "unlimited", or "fit".',
 		'edit_feed_settings' => 'Edit feed in FreshRSS',
 		'edit_category_settings' => 'Edit category in FreshRSS',
+		'new_feed_position' => 'New feed position',
+		'new_feed_position_help' => 'Choose where new feeds will appear on the tab',
+		'new_feed_position_bottom' => 'New feeds at the bottom',
+		'new_feed_position_top' => 'New feeds at the top',
 	),
 );
