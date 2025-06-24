@@ -336,6 +336,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 							'compactSnippet' => $this->generateSnippet($entry, 30, 1), // compact view
 							'detailedSnippet' => $this->generateSnippet($entry, 100, 3), // detailed view with 3 sentences
 							'isRead' => $entry->isRead(),
+							'isFavorite' => $entry->isFavorite(),
 							'author' => html_entity_decode($entry->author(), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 							'tags' => $entry->tags(),
 							'feedId' => $feedId,
@@ -375,6 +376,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 		@$this->view->markFeedReadUrl = Minz_Url::display(['c' => $controllerParam, 'a' => 'markfeedread'], 'json', false);
 		@$this->view->markTabReadUrl = Minz_Url::display(['c' => $controllerParam, 'a' => 'marktabread'], 'json', false);
 		@$this->view->markReadUrl = Minz_Url::display(['c' => 'entry', 'a' => 'read'], 'json', false);
+		@$this->view->bookmarkUrl = Minz_Url::display(['c' => 'entry', 'a' => 'bookmark'], 'json', false);
 		@$this->view->searchAuthorUrl = Minz_Url::display(['a' => 'normal'], 'html', false);
 		@$this->view->searchTagUrl = Minz_Url::display(['a' => 'normal'], 'html', false);
 
@@ -420,19 +422,94 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 
 		foreach ($feeds as $feed) {
 			$feedId = $feed->id();
+
+			// Get all feed settings - this was missing!
 			$limitKey = ($mode === 'categories' ?
 				FreshVibesViewExtension::CATEGORY_LIMIT_CONFIG_PREFIX :
 				FreshVibesViewExtension::LIMIT_CONFIG_PREFIX) .
 				$feedId;
-			$limit = $userConf->hasParam($limitKey) ? $userConf->param($limitKey) : FreshVibesViewExtension::DEFAULT_ARTICLES_PER_FEED;
+			$fontSizeKey = ($mode === 'categories' ?
+				FreshVibesViewExtension::CATEGORY_FONT_SIZE_CONFIG_PREFIX :
+				FreshVibesViewExtension::FONT_SIZE_CONFIG_PREFIX) .
+				$feedId;
+			$headerColorKey = ($mode === 'categories' ?
+				FreshVibesViewExtension::CATEGORY_FEED_HEADER_COLOR_CONFIG_PREFIX :
+				FreshVibesViewExtension::FEED_HEADER_COLOR_CONFIG_PREFIX) .
+				$feedId;
+			$maxHeightKey = ($mode === 'categories' ?
+				FreshVibesViewExtension::CATEGORY_MAX_HEIGHT_CONFIG_KEY :
+				FreshVibesViewExtension::MAX_HEIGHT_CONFIG_KEY) .
+				$feedId;
+			$displayModeKey = ($mode === 'categories' ?
+				FreshVibesViewExtension::CATEGORY_FEED_DISPLAY_MODE_CONFIG_PREFIX :
+				FreshVibesViewExtension::FEED_DISPLAY_MODE_CONFIG_PREFIX) .
+				$feedId;
 
+			// Get limit with validation
+			if ($userConf->hasParam($limitKey)) {
+				$limit = $userConf->param($limitKey);
+			} else {
+				$limit = FreshVibesViewExtension::DEFAULT_ARTICLES_PER_FEED;
+			}
+			$limitForValidation = is_numeric($limit) ? (int)$limit : $limit;
+			if (!in_array($limitForValidation, FreshVibesViewExtension::ALLOWED_LIMIT_VALUES, true)) {
+				$limit = FreshVibesViewExtension::DEFAULT_ARTICLES_PER_FEED;
+			}
 			$queryLimit = ($limit === 'unlimited') ? null : (int)$limit;
-			$fontSize = $userConf->attributeString(FreshVibesViewExtension::FONT_SIZE_CONFIG_PREFIX . $feedId, FreshVibesViewExtension::DEFAULT_FONT_SIZE);
-			$headerColor = $userConf->attributeString(FreshVibesViewExtension::FEED_HEADER_COLOR_CONFIG_PREFIX . $feedId, '');
-			$maxHeight = $userConf->attributeString(FreshVibesViewExtension::MAX_HEIGHT_CONFIG_KEY . $feedId, FreshVibesViewExtension::DEFAULT_MAX_HEIGHT_CONFIG_KEY);
-			$displayMode = $userConf->attributeString(FreshVibesViewExtension::FEED_DISPLAY_MODE_CONFIG_PREFIX . $feedId, FreshVibesViewExtension::DEFAULT_DISPLAY_MODE);
 
-			$entryGenerator = $entryDAO->listWhere('f', $feedId, $currentState, null, '0', '0', (FreshRSS_Context::$sort ?? 'date'), (FreshRSS_Context::$order ?? 'DESC'), '0', 0, $queryLimit ?? 0, 0);
+			// Get font size
+			if ($userConf->hasParam($fontSizeKey)) {
+				$fontSize = $userConf->attributeString($fontSizeKey);
+			} else {
+				$fontSize = FreshVibesViewExtension::DEFAULT_FONT_SIZE;
+			}
+			if (!in_array($fontSize, FreshVibesViewExtension::ALLOWED_FONT_SIZES)) {
+				$fontSize = FreshVibesViewExtension::DEFAULT_FONT_SIZE;
+			}
+
+			// Get header color
+			if ($userConf->hasParam($headerColorKey)) {
+				$headerColor = $userConf->attributeString($headerColorKey);
+			} else {
+				$headerColor = '';
+			}
+
+			// Get max height
+			if ($userConf->hasParam($maxHeightKey)) {
+				$maxHeight = $userConf->attributeString($maxHeightKey);
+			} else {
+				$maxHeight = FreshVibesViewExtension::DEFAULT_MAX_HEIGHT_CONFIG_KEY;
+			}
+			if (!in_array($maxHeight, FreshVibesViewExtension::ALLOWED_MAX_HEIGHTS_CONFIG_KEY, true) && !is_numeric($maxHeight)) {
+				$maxHeight = FreshVibesViewExtension::DEFAULT_MAX_HEIGHT_CONFIG_KEY;
+			}
+
+			// Get display mode
+			if ($userConf->hasParam($displayModeKey)) {
+				$displayMode = $userConf->attributeString($displayModeKey);
+			} else {
+				$displayMode = FreshVibesViewExtension::DEFAULT_DISPLAY_MODE;
+			}
+			if (!in_array($displayMode, FreshVibesViewExtension::ALLOWED_DISPLAY_MODES)) {
+				$displayMode = FreshVibesViewExtension::DEFAULT_DISPLAY_MODE;
+			}
+
+			// Get entries
+			$entryGenerator = $entryDAO->listWhere(
+				'f',
+				$feedId,
+				$currentState,
+				null,
+				'0',
+				'0',
+				(FreshRSS_Context::$sort ?? 'date'),
+				(FreshRSS_Context::$order ?? 'DESC'),
+				'0',
+				0,
+				$queryLimit ?? 0,
+				0
+			);
+
 			$entries = [];
 			foreach ($entryGenerator as $entry) {
 				if ($entry instanceof FreshRSS_Entry) {
@@ -461,7 +538,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 				'website' => $feed->website(),
 				'entries' => $entries,
 				'nbUnread' => $feed->nbNotRead(),
-				// Include current settings so the UI doesn't have to guess
+				// Include all current settings
 				'currentLimit' => $limit,
 				'currentFontSize' => $fontSize,
 				'currentHeaderColor' => $headerColor,
@@ -860,7 +937,15 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 			$userConf->_attribute($displayModePrefix . $feedId, $displayMode);
 
 			if ($headerColor !== null) {
-				$userConf->_attribute($headerPrefix . $feedId, $headerColor);
+				if ($headerColor === '') {
+					if (method_exists($userConf, 'removeAttribute')) {
+						$userConf->removeAttribute($headerPrefix . $feedId);
+					} else {
+						unset($userConf->{$headerPrefix . $feedId});
+					}
+				} else {
+					$userConf->_attribute($headerPrefix . $feedId, $headerColor);
+				}
 			}
 			$userConf->save();
 			echo json_encode(['status' => 'success']);
@@ -1289,7 +1374,15 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 				$userConf->_attribute($displayModePrefix . $feedId, $displayMode);
 
 				if ($headerColor !== null) {
-					$userConf->_attribute($headerPrefix . $feedId, $headerColor);
+					if ($headerColor === '') {
+						if (method_exists($userConf, 'removeAttribute')) {
+							$userConf->removeAttribute($headerPrefix . $feedId);
+						} else {
+							unset($userConf->{$headerPrefix . $feedId});
+						}
+					} else {
+						$userConf->_attribute($headerPrefix . $feedId, $headerColor);
+					}
 				}
 			}
 
@@ -1381,6 +1474,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 			foreach ($feeds as $feed) {
 				$feedId = $feed->id();
 
+				// Define all prefixes based on mode
 				$limitPrefix = $mode === 'categories' ?
 					FreshVibesViewExtension::CATEGORY_LIMIT_CONFIG_PREFIX :
 					FreshVibesViewExtension::LIMIT_CONFIG_PREFIX;
@@ -1397,20 +1491,12 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 					FreshVibesViewExtension::CATEGORY_FEED_DISPLAY_MODE_CONFIG_PREFIX :
 					FreshVibesViewExtension::FEED_DISPLAY_MODE_CONFIG_PREFIX;
 
-				$keys = [
-					$limitPrefix . $feedId,
-					$fontPrefix . $feedId,
-					$headerPrefix . $feedId,
-					$maxHeightPrefix . $feedId,
-					$displayModePrefix . $feedId,
-				];
-				foreach ($keys as $key) {
-					if (method_exists($userConf, 'removeAttribute')) {
-						$userConf->removeAttribute($key);
-					} else {
-						unset($userConf->$key);
-					}
-				}
+				// Set all attributes to null to remove them
+				$userConf->_attribute($limitPrefix . $feedId, null);
+				$userConf->_attribute($fontPrefix . $feedId, null);
+				$userConf->_attribute($headerPrefix . $feedId, null);
+				$userConf->_attribute($maxHeightPrefix . $feedId, null);
+				$userConf->_attribute($displayModePrefix . $feedId, null);
 			}
 
 			$userConf->save();

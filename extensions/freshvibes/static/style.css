@@ -386,14 +386,14 @@ input[type="color"] {
 }
 
 .freshvibes-panel.active {
-	display: block;
+	display: flex;
+	flex-direction: column;
 }
 
 /* Column Layout */
 .freshvibes-columns {
 	display: flex;
 	gap: 15px;
-	align-items: flex-start;
 }
 
 .freshvibes-column {
@@ -874,6 +874,22 @@ input[type="color"] {
 }
 
 .entry-action-btn.is-read .action-icon-unread {
+	display: none;
+}
+
+.entry-fav-btn .action-icon-star {
+	display: none;
+}
+
+.entry-fav-btn .action-icon-unstar {
+	display: inline-block;
+}
+
+.entry-fav-btn.is-favorite .action-icon-star {
+	display: inline-block;
+}
+
+.entry-fav-btn.is-favorite .action-icon-unstar {
 	display: none;
 }
 
