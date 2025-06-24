@@ -14,46 +14,48 @@
 	--freshvibes-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
 	/* Color mappings with fallbacks */
-	--freshvibes-background-primary: var(--background-color-light, var(--frss-background-color, #fff));
-	--freshvibes-background-secondary: var(--background-color-grey, var(--background-color-light-shadowed, var(--frss-background-color-middle, #f6f6f6)));
-	--freshvibes-background-hover: var(--background-color-hover, var(--background-color-light-shadowed, #f0f0f0));
-	--freshvibes-background-active: var(--background-color-dark, var(--frss-background-color-dark, #333));
+	--freshvibes-background-primary: var(--background-color-dark, var(--background-color-light, var(--main-background, var(--frss-background-color, #fff))));
+	--freshvibes-background-secondary: var(--background-color-grey, var(--dropdown-bg, var(--background-color-light-shadowed, var(--background-color-middle, var(--frss-background-color-middle, #f6f6f6)))));
+	--freshvibes-background-hover: var(--background-color-hover, var(--background-color-dark, var(--light-bg, var(--background-color-light-shadowed, #f0f0f0))));
+	--freshvibes-background-active: var(--background-color-dark, var(--accent-bg, var(--frss-background-color-dark, #333)));
 
 	/* Text colors */
-	--freshvibes-text-primary: var(--font-color, var(--frss-font-color-dark, #111));
-	--freshvibes-text-secondary: var(--font-color-grey, var(--frss-font-color-grey-dark, #666));
-	--freshvibes-text-light: var(--font-color-light, var(--frss-font-color-light, #fff));
+	--freshvibes-text-primary: var(--font-color-light, var(--accent, var(--font-color, var(--font-color-middle, var(--text-default, var(--frss-font-color-light, var(--frss-font-color-dark, #111)))))));
+	--freshvibes-text-secondary: var(--font-color-grey, var(--font-color-light, var(--font-color-middle, var(--text-accent, var(--frss-font-color-grey-dark, #666)))));
+	--freshvibes-text-light: var(--font-color-light, var(--text-accent, var(--frss-font-color-light, #fff)));
 
 	/* Border colors */
-	--freshvibes-border-color: var(--border-color, var(--frss-border-color, #ddd));
-	--freshvibes-border-shadow: var(--border-color-shadow-side, var(--border-color, #ccc));
+	--freshvibes-border-color: var(--border-color, var(--accent-border, var(--dark-border-color, var(--frss-border-color, #ddd))));
+	--freshvibes-border-shadow: var(--border-color-shadow-side, var(--border-elements, var(--dark-border-color, var(--border-color, #ccc))));
 
 	/* Accent colors */
-	--freshvibes-accent-primary: var(--contrast-background-color, var(--link-color, var(--font-color-link, #2980b9)));
-	--freshvibes-accent-hover: var(--contrast-background-color-hover, var(--link-color-hover, #0062be));
-	--freshvibes-accent-active: var(--contrast-background-color-active, #0062be);
+	--freshvibes-accent-primary: var(--contrast-background-color, var(--accent, var(--link-color, var(--font-color-link, #2980b9))));
+	--freshvibes-accent-hover: var(--contrast-background-color-hover, var(--highlight, var(--link-color-hover, #0062be)));
+	--freshvibes-accent-active: var(--contrast-background-color-active, var(--accent, #0062be));
 
 	/* Special colors */
-	--freshvibes-unread-color: var(--unread-article-border-color, #ff5300);
-	--freshvibes-favorite-color: var(--favorite-article-border-color, #ffc300);
-	--freshvibes-error-color: var(--error-feed-color, var(--font-color-error, #bd362f));
+	--freshvibes-unread-color: var(--unread-article-border-color, var(--border-color-unread, #ff5300));
+	--freshvibes-favorite-color: var(--favorite-article-border-color, var(--border-color-favorite, #ffc300));
+	--freshvibes-error-color: var(--error-feed-color, var(--font-color-error, var(--frss-font-color-error, var(--red, #bd362f))));
+	--freshvibes-error-color-hover: var(--alert-error-border-color, var(--attention-background-color-active, var(--frss-font-color-error, var(--font-color-error, #c9302c))));
+	--freshvibes-highlight-background: var(--accent-bg, var(--background-color-hover, #effcfd));
 
 	/* Button colors */
-	--freshvibes-button-bg: var(--background-color-light, #fff);
-	--freshvibes-button-hover: var(--background-color-grey, #f0f0f0);
-	--freshvibes-button-active: var(--background-color-grey-button-active, var(--background-color-dark, #eee));
-	--freshvibes-button-important-bg: var(--background-color-button-important, var(--contrast-background-color, #5cb85c));
-	--freshvibes-button-important-hover: var(--background-color-button-important-hover, var(--contrast-background-color-hover, #47a447));
+	--freshvibes-button-bg: var(--background-color-light, var(--accent-bg, #fff));
+	--freshvibes-button-hover: var(--background-color-grey, var(--dropdown-bg, #f0f0f0));
+	--freshvibes-button-active: var(--background-color-grey-button-active, var(--background-color-dark, var(--accent-bg, #eee)));
+	--freshvibes-button-important-bg: var(--background-color-button-important, var(--contrast-background-color, var(--accent, #5cb85c)));
+	--freshvibes-button-important-hover: var(--background-color-button-important-hover, var(--contrast-background-color-hover, var(--accent, #47a447)));
 }
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
 	:root.darkMode_auto {
-		--freshvibes-background-primary: var(--background-color-light, var(--frss-background-color, #111));
-		--freshvibes-background-secondary: var(--background-color-grey, var(--frss-background-color-middle, #1f1f1f));
-		--freshvibes-background-hover: var(--background-color-hover, #212227);
-		--freshvibes-text-primary: var(--font-color, var(--frss-font-color-dark, #ccc));
-		--freshvibes-text-secondary: var(--font-color-grey, var(--frss-font-color-grey-dark, #aaa));
+		--freshvibes-background-primary: var(--background-color-dark, var(--background-color-light, var(--frss-background-color, #111)));
+		--freshvibes-background-secondary: var(--background-color-grey, var(--background-color-middle, var(--frss-background-color-middle, #1f1f1f)));
+		--freshvibes-background-hover: var(--background-color-hover, var(--dark-background-color-blue, #212227));
+		--freshvibes-text-primary: var(--font-color-light, var(--accent, var(--font-color, var(--frss-font-color-dark, #ccc))));
+		--freshvibes-text-secondary: var(--font-color-light, var(--font-color-grey, var(--frss-font-color-grey-dark, #aaa)));
 	}
 }
 
@@ -186,8 +188,8 @@
 }
 
 .tab-bulk-button:hover {
-	background-color: #c9302c;
-	border-color: #c9302c;
+	background-color: var(--freshvibes-error-color-hover);
+	border-color: var(--freshvibes-error-color-hover);
 }
 
 /* Tab Settings */
@@ -330,7 +332,7 @@ input[type="color"] {
 }
 
 .tab-action-delete:hover {
-	background-color: #c9302c;
+	background-color: var(--freshvibes-error-color-hover);
 }
 
 /* Icon Picker */
@@ -409,7 +411,7 @@ input[type="color"] {
 
 .freshvibes-container {
 	border: 1px solid var(--freshvibes-border-shadow);
-	background-color: var(--frss-background-color-light, var(--freshvibes-background-primary));
+	background-color: var(--accent-bg, var(--frss-background-color-light, var(--freshvibes-background-primary)));
 	border-radius: var(--freshvibes-border-radius);
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 	position: relative;
@@ -1299,13 +1301,13 @@ input[type="color"] {
 }
 
 .fvbtn.fvbtn-danger {
-	background-color: #d9534f;
-	color: white;
-	border-color: #d9534f;
+	background-color: var(--freshvibes-error-color);
+	color: var(--freshvibes-text-light);
+	border-color: var(--freshvibes-error-color);
 }
 
 .fvbtn.fvbtn-danger:hover {
-	background-color: #c9302c;
+	background-color: var(--freshvibes-error-color-hover);
 }
 
 
@@ -1374,10 +1376,9 @@ input[type="color"] {
 	padding: 4px 12px;
 	border: 1px solid var(--freshvibes-border-color);
 	border-radius: var(--freshvibes-border-radius);
-	background-image: linear-gradient(to bottom, var(--contrast-background-color, #3498db), var(--contrast-background-color-gradient, #2980b9));
-	color: var(--font-color-light, white);
-	border: 1px solid var(--contrast-border-color, #2980b9);
-	color: white;
+	background-image: linear-gradient(to bottom, var(--freshvibes-accent-primary), var(--contrast-background-color-gradient, var(--freshvibes-accent-primary)));
+	color: var(--font-color-light, var(--freshvibes-text-light));
+	border: 1px solid var(--contrast-border-color, var(--freshvibes-accent-primary));
 	cursor: pointer;
 	transition: all var(--freshvibes-transition-duration) ease;
 	margin-left: 8px;
@@ -1439,7 +1440,7 @@ input[type="color"] {
 #bigMarkAsRead.big {
 	text-align: center;
 	text-decoration: none;
-	background: #effcfd;
+	background: var(--freshvibes-highlight-background);
 	color: var(--freshvibes-accent-primary);
 	transition: all 0.15s ease-in-out;
 }
