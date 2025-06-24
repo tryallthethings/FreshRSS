@@ -99,5 +99,8 @@ return array(
 		'reset' => 'Reset',
 		'settings_confirm_mark_read_label' => 'Confirm marking entries as read',
 		'settings_confirm_mark_read_help' => 'Show confirmation dialog when marking feeds or tabs as read',
+		'fv_invalid_height' => 'Invalid value. Use a number, "unlimited", or "fit".',
+		'edit_feed_settings' => 'Edit feed in FreshRSS',
+		'edit_category_settings' => 'Edit category in FreshRSS',
 	),
 );

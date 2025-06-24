@@ -186,7 +186,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 			} else {
 				$maxHeight = FreshVibesViewExtension::DEFAULT_MAX_HEIGHT_CONFIG_KEY;
 			}
-			if (!in_array($maxHeight, FreshVibesViewExtension::ALLOWED_MAX_HEIGHTS_CONFIG_KEY)) {
+			if (!in_array($maxHeight, FreshVibesViewExtension::ALLOWED_MAX_HEIGHTS_CONFIG_KEY, true) && !is_numeric($maxHeight)) {
 				$maxHeight = FreshVibesViewExtension::DEFAULT_MAX_HEIGHT_CONFIG_KEY;
 			}
 
@@ -293,13 +293,15 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 		@$this->view->rss_title = _t('ext.FreshVibesView.title');
 		@$this->view->refreshEnabled = (bool)$userConf->param(FreshVibesViewExtension::REFRESH_ENABLED_CONFIG_KEY, 0);
 		@$this->view->refreshInterval = (int)$userConf->param(FreshVibesViewExtension::REFRESH_INTERVAL_CONFIG_KEY, 15);
-		@$this->view->html_url = Minz_Url::display(['c' => $controllerParam, 'a' => 'index']);
 		@$this->view->feedUrl = Minz_Url::display([], 'html', false) . '?get=f_';
 		@$this->view->categories = FreshRSS_Context::categories();
 		@$this->view->confirmTabDelete = (bool)$userConf->param(FreshVibesViewExtension::CONFIRM_TAB_DELETE_CONFIG_KEY, 1);
 		@$this->view->entryClickMode = $userConf->param(FreshVibesViewExtension::ENTRY_CLICK_MODE_CONFIG_KEY, 'modal');
 		@$this->view->dateMode = $userConf->param(FreshVibesViewExtension::DATE_MODE_CONFIG_KEY, 'absolute');
 		@$this->view->confirmMarkRead = (bool)$userConf->param(FreshVibesViewExtension::CONFIRM_MARK_READ_CONFIG_KEY, 1);
+		@$this->view->refreshFeedsUrl = Minz_Url::display(['c' => $controllerParam, 'a' => 'refreshfeeds'], 'json', false);
+		@$this->view->feedSettingsUrl = Minz_Url::display() . '?c=subscription&a=feed&id=';
+		@$this->view->categorySettingsUrl = Minz_Url::display() . '?c=category&a=update&id=';
 
 		@$tags = FreshRSS_Context::labels(true);
 		@$this->view->tags = $tags;
@@ -310,6 +312,77 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 		@$this->view->nbUnreadTags = $nbUnreadTags;
 
 		$this->view->_path(FreshVibesViewExtension::CONTROLLER_NAME_BASE . '/index.phtml');
+	}
+
+	public function refreshfeedsAction() {
+		$this->noCacheHeaders();
+		header('Content-Type: application/json');
+
+		$factory = new FreshRSS_Factory();
+		$feedDAO = $factory->createFeedDAO();
+		$entryDAO = $factory->createEntryDAO();
+		$userConf = FreshRSS_Context::userConf();
+		$mode = $this->getMode();
+		$stateAll = defined('FreshRSS_Entry::STATE_ALL') ? FreshRSS_Entry::STATE_ALL : 0;
+		$feedsData = [];
+		$dateFormat = $userConf->param(FreshVibesViewExtension::DATE_FORMAT_CONFIG_KEY, 'Y-m-d H:i');
+		$dateMode = $userConf->param(FreshVibesViewExtension::DATE_MODE_CONFIG_KEY, 'absolute');
+		$feeds = $feedDAO->listFeeds();
+
+		foreach ($feeds as $feed) {
+			$feedId = $feed->id();
+			$limitKey = ($mode === 'categories' ?
+				FreshVibesViewExtension::CATEGORY_LIMIT_CONFIG_PREFIX :
+				FreshVibesViewExtension::LIMIT_CONFIG_PREFIX) .
+				$feedId;
+			$limit = $userConf->hasParam($limitKey) ? $userConf->param($limitKey) : FreshVibesViewExtension::DEFAULT_ARTICLES_PER_FEED;
+
+			$queryLimit = ($limit === 'unlimited') ? null : (int)$limit;
+			$fontSize = $userConf->attributeString(FreshVibesViewExtension::FONT_SIZE_CONFIG_PREFIX . $feedId, FreshVibesViewExtension::DEFAULT_FONT_SIZE);
+			$headerColor = $userConf->attributeString(FreshVibesViewExtension::FEED_HEADER_COLOR_CONFIG_PREFIX . $feedId, '');
+			$maxHeight = $userConf->attributeString(FreshVibesViewExtension::MAX_HEIGHT_CONFIG_KEY . $feedId, FreshVibesViewExtension::DEFAULT_MAX_HEIGHT_CONFIG_KEY);
+			$displayMode = $userConf->attributeString(FreshVibesViewExtension::FEED_DISPLAY_MODE_CONFIG_PREFIX . $feedId, FreshVibesViewExtension::DEFAULT_DISPLAY_MODE);
+
+			$entryGenerator = $entryDAO->listWhere('f', $feedId, $stateAll, null, '0', '0', (FreshRSS_Context::$sort ?? 'date'), (FreshRSS_Context::$order ?? 'DESC'), '0', 0, $queryLimit ?? 0, 0);
+			$entries = [];
+			foreach ($entryGenerator as $entry) {
+				if ($entry instanceof FreshRSS_Entry) {
+					$entries[] = [
+						'id' => $entry->id(),
+						'link' => $entry->link(),
+						'title' => html_entity_decode($entry->title(), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+						'dateShort' => date($dateFormat, $entry->date(true)),
+						'dateRelative' => $this->getRelativeDate($entry->date(true)),
+						'dateFull' => (string) $entry->date(true),
+						'snippet' => $this->generateSnippet($entry, 15, 1),
+						'compactSnippet' => $this->generateSnippet($entry, 30, 1),
+						'detailedSnippet' => $this->generateSnippet($entry, 100, 3),
+						'isRead' => $entry->isRead(),
+						'author' => html_entity_decode($entry->author(), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+						'tags' => $entry->tags(),
+						'feedId' => $feedId,
+					];
+				}
+			}
+
+			$feedsData[$feedId] = [
+				'id' => $feedId,
+				'name' => html_entity_decode($feed->name(), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+				'favicon' => $feed->favicon(),
+				'website' => $feed->website(),
+				'entries' => $entries,
+				'nbUnread' => $feed->nbNotRead(),
+				// Include current settings so the UI doesn't have to guess
+				'currentLimit' => $limit,
+				'currentFontSize' => $fontSize,
+				'currentHeaderColor' => $headerColor,
+				'currentMaxHeight' => $maxHeight,
+				'currentDisplayMode' => $displayMode,
+			];
+		}
+
+		echo json_encode($feedsData);
+		exit;
 	}
 
 	public function getLayoutAction() {
@@ -660,12 +733,13 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 		$displayMode = Minz_Request::paramString('display_mode');
 
 		$limitForValidation = is_numeric($limit) ? (int)$limit : $limit;
+		$isValidMaxHeight = (is_numeric($maxHeight) && intval($maxHeight) >= 0) || in_array($maxHeight, ['unlimited', 'fit'], true);
 
 		if (
 			$feedId <= 0 ||
 			!in_array($limitForValidation, FreshVibesViewExtension::ALLOWED_LIMIT_VALUES, true) ||
 			!in_array($fontSize, FreshVibesViewExtension::ALLOWED_FONT_SIZES) ||
-			!in_array($maxHeight, FreshVibesViewExtension::ALLOWED_MAX_HEIGHTS_CONFIG_KEY) ||
+			!$isValidMaxHeight ||
 			!in_array($displayMode, FreshVibesViewExtension::ALLOWED_DISPLAY_MODES)
 		) {
 			http_response_code(400);
@@ -1082,11 +1156,12 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 		$displayMode = Minz_Request::paramString('display_mode');
 
 		$limitForValidation = is_numeric($limit) ? (int)$limit : $limit;
+		$isValidMaxHeight = (is_numeric($maxHeight) && intval($maxHeight) >= 0) || in_array($maxHeight, ['unlimited', 'fit'], true);
 
 		if (
 			!in_array($limitForValidation, FreshVibesViewExtension::ALLOWED_LIMIT_VALUES, true) ||
 			!in_array($fontSize, FreshVibesViewExtension::ALLOWED_FONT_SIZES) ||
-			!in_array($maxHeight, FreshVibesViewExtension::ALLOWED_MAX_HEIGHTS_CONFIG_KEY) ||
+			!$isValidMaxHeight ||
 			!in_array($displayMode, FreshVibesViewExtension::ALLOWED_DISPLAY_MODES)
 		) {
 			http_response_code(400);
