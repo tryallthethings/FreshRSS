@@ -386,14 +386,14 @@ input[type="color"] {
 }
 
 .freshvibes-panel.active {
-	display: flex;
-	flex-direction: column;
+	display: block;
 }
 
 /* Column Layout */
 .freshvibes-columns {
 	display: flex;
 	gap: 15px;
+	align-items: flex-start;
 }
 
 .freshvibes-column {
@@ -402,7 +402,8 @@ input[type="color"] {
 	display: flex;
 	flex-direction: column;
 	gap: 15px;
-	min-height: 100px;
+	min-height: calc(100vh - 250px);
+	/* Adjust this value based on your header height */
 }
 
 /* ========================================
