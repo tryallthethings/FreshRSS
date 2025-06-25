@@ -10,6 +10,18 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 	 */
 	protected $view;
 
+	public function __construct() {
+		parent::__construct(tryallthethings\FreshVibes\Models\View::class);
+	}
+
+	#[\Override]
+	public function firstAction(): void {
+		$this->view->html_url = Minz_Url::display([
+			'c' => FreshVibesViewExtension::CONTROLLER_NAME_BASE,
+			'a' => 'index',
+		], 'html', 'root');
+	}
+
 	public function indexAction() {
 		$this->noCacheHeaders();
 
@@ -955,7 +967,6 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 			foreach ($layout as &$tab) {
 				if ($tab['id'] === $sourceTabId) {
 					foreach ($tab['columns'] as &$column) {
-
 						if (!is_array($column)) {
 							continue;
 						}
@@ -1402,6 +1413,8 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 			foreach ($layout as &$tab) {
 				$tab['num_columns'] = FreshVibesViewExtension::DEFAULT_TAB_COLUMNS;
 				$allFeeds = array_merge(...array_values($tab['columns']));
+				$tab['icon'] = '';
+				$tab['icon_color'] = '';
 				$newColumns = $this->buildEmptyColumns(FreshVibesViewExtension::DEFAULT_TAB_COLUMNS);
 				/** @var array<int,int> $allFeeds */
 				if (!empty($allFeeds)) {

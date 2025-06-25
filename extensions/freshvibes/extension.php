@@ -56,6 +56,8 @@ class FreshVibesViewExtension extends Minz_Extension {
 	// Font Sizes
 	public const ALLOWED_FONT_SIZES = ['xsmall', 'small', 'regular', 'large', 'xlarge'];
 	public const DEFAULT_FONT_SIZE = 'regular';
+
+	// Config Prefixes
 	public const TAB_BG_COLOR_CONFIG_PREFIX = self::CONTROLLER_NAME_BASE . '_tab_bgcolor_';
 	public const CATEGORY_TAB_BG_COLOR_CONFIG_PREFIX = self::CONTROLLER_NAME_BASE . '_category_tab_bgcolor_';
 	public const TAB_FONT_COLOR_CONFIG_PREFIX = self::CONTROLLER_NAME_BASE . '_tab_fontcolor_';
