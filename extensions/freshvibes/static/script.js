@@ -320,10 +320,9 @@ function initializeDashboard(freshvibesView) {
 			return colDiv;
 		});
 
-		// This set prevents a feed from being drawn more than once in a single render.
 		const renderedFeeds = new Set();
 
-		// Part 1: Render feeds that are explicitly placed in the current tab's layout.
+		// Render feeds that are explicitly placed in the current tab's layout.
 		if (tab.columns && typeof tab.columns === 'object') {
 			Object.entries(tab.columns).forEach(([colId, feedIds]) => {
 				const colIndex = parseInt(colId.replace('col', ''), 10) - 1;
@@ -341,7 +340,7 @@ function initializeDashboard(freshvibesView) {
 			});
 		}
 
-		// Part 2: On the very first tab, also render any feeds that are not placed in *any* tab's layout.
+		//  On the very first tab, also render any feeds that are not placed in *any* tab's layout.
 		const isFirstTab = state.layout.length > 0 && state.layout[0].id === tab.id;
 		if (isFirstTab) {
 			Object.entries(state.feeds).forEach(([feedKey, feedData]) => {
@@ -1978,7 +1977,7 @@ function initializeDashboard(freshvibesView) {
 
 		// Handle middle-click on entries to mark as read
 		freshvibesView.addEventListener('auxclick', e => {
-			if (e.button !== 1) { // We only care about the middle mouse button
+			if (e.button !== 1) { // Only care about the middle mouse button
 				return;
 			}
 
