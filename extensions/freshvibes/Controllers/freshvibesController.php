@@ -144,7 +144,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 						];
 					}
 				}
-			} catch (Throwable $e) {
+			} catch (Exception $e) {
 				error_log('FreshVibesView error in indexAction for feed ' . $feedId . ': ' . $e->getMessage());
 				$entries = ['error' => sprintf(_t('ext.FreshVibesView.error_loading_entries_logs'), $feedId)];
 			}
@@ -342,7 +342,8 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 
 		if ($layout === null) {
 			$numCols = FreshVibesViewExtension::DEFAULT_TAB_COLUMNS;
-			$feedDAO = new FreshRSS_FeedDAO();
+			$factory = new FreshRSS_Factory();
+			$feedDAO = $factory->createFeedDAO();
 
 			$columns = $this->buildEmptyColumns($numCols);
 			$feeds = $feedDAO->listFeeds();
@@ -606,7 +607,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 			echo json_encode(['layout' => $layout, 'active_tab_id' => $activeTabId]);
 		} catch (Exception $e) {
 			http_response_code(500);
-			echo json_encode(['error' => 'Server error loading layout.']);
+			echo json_encode(['error' => _t('ext.FreshVibesView.error_server_loading_layout')]);
 		}
 		exit;
 	}
@@ -1082,7 +1083,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 				echo json_encode(['status' => 'success', 'affected' => $affected]);
 			} else {
 				http_response_code(500);
-				echo json_encode(['status' => 'error', 'message' => 'Failed to mark feed as read']);
+				echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_mark_feed_read')]);
 			}
 		} catch (Exception $e) {
 			http_response_code(500);
@@ -1226,7 +1227,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 			!in_array($displayMode, FreshVibesViewExtension::ALLOWED_DISPLAY_MODES, true)
 		) {
 			http_response_code(400);
-			echo json_encode(['status' => 'error', 'message' => 'Invalid settings']);
+			echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_invalid_settings')]);
 			exit;
 		}
 

@@ -461,8 +461,13 @@ function initializeDashboard(freshvibesView) {
 			if (fontSelect) {
 				['xsmall', 'small', 'regular', 'large', 'xlarge'].forEach(val => {
 					let label = val.charAt(0).toUpperCase() + val.slice(1);
-					if (val === 'xsmall') label = 'Extra Small';
-					if (val === 'xlarge') label = 'Extra Large';
+					// Use translations from the tr object if available
+					if (tr[`font_size_${val}`]) {
+						label = tr[`font_size_${val}`];
+					} else {
+						if (val === 'xsmall') label = 'Extra Small';
+						if (val === 'xlarge') label = 'Extra Large';
+					}
 					const opt = new Option(label, val, val === feed.currentFontSize, val === feed.currentFontSize);
 					fontSelect.add(opt);
 				});
@@ -2091,7 +2096,7 @@ function initializeDashboard(freshvibesView) {
 						})
 						.catch(err => {
 							console.error('Error applying bulk feed settings:', err);
-							alert('Error applying settings. Please try again.');
+							alert(tr.error_applying_settings || 'Error applying settings. Please try again.');
 						});
 				}
 			});
@@ -2113,7 +2118,7 @@ function initializeDashboard(freshvibesView) {
 						})
 						.catch(err => {
 							console.error('Error applying bulk tab settings:', err);
-							alert('Error applying settings. Please try again.');
+							alert(tr.error_applying_settings || 'Error applying settings. Please try again.');
 						});
 				}
 			});
@@ -2128,7 +2133,7 @@ function initializeDashboard(freshvibesView) {
 						})
 						.catch(err => {
 							console.error('Error resetting feed settings:', err);
-							alert('Error resetting settings. Please try again.');
+							alert(tr.error_resetting_settings || 'Error resetting settings. Please try again.');
 						});
 				}
 			});
@@ -2143,7 +2148,7 @@ function initializeDashboard(freshvibesView) {
 						})
 						.catch(err => {
 							console.error('Error resetting tab settings:', err);
-							alert('Error resetting settings. Please try again.');
+							alert(tr.error_resetting_settings || 'Error resetting settings. Please try again.');
 						});
 				}
 			});
