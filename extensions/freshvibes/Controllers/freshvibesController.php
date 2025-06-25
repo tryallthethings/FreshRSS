@@ -345,7 +345,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 				}
 			} catch (Throwable $e) {
 				error_log('FreshVibesView error in indexAction for feed ' . $feedId . ': ' . $e->getMessage());
-				$entries = ['error' => 'Error loading entries for feed ' . $feedId . '. Please check system logs.'];
+				$entries = ['error' => sprintf(_t('ext.FreshVibesView.error_loading_entries_logs'), $feedId)];
 			}
 
 			$feedsData[$feedId] = [
@@ -660,11 +660,17 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 	}
 
 	public function updateTabAction() {
+		if (!Minz_Request::checkCsrf()) {
+			http_response_code(403);
+			echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.csrf_error')]);
+			exit;
+		}
+
 		$this->noCacheHeaders();
 		header('Content-Type: application/json');
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['operation'])) {
 			http_response_code(400);
-			echo json_encode(['status' => 'error', 'message' => 'Invalid request.']);
+			echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_invalid_request')]);
 			exit;
 		}
 
@@ -677,7 +683,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 				case 'add':
 					if ($mode === 'categories') {
 						http_response_code(403);
-						echo json_encode(['status' => 'error', 'message' => 'Operation not allowed.']);
+						echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_operation_not_allowed')]);
 						exit;
 					}
 					$newTab = [
@@ -695,12 +701,12 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 				case 'delete':
 					if ($mode === 'categories') {
 						http_response_code(403);
-						echo json_encode(['status' => 'error', 'message' => 'Operation not allowed.']);
+						echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_operation_not_allowed')]);
 						exit;
 					}
 					if (count($layout) <= 1) {
 						http_response_code(400);
-						echo json_encode(['status' => 'error', 'message' => 'Cannot delete the last tab.']);
+						echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_delete_last_tab')]);
 						exit;
 					}
 					$tabId = Minz_Request::paramString('tab_id');
@@ -729,14 +735,14 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 				case 'rename':
 					if ($mode === 'categories') {
 						http_response_code(403);
-						echo json_encode(['status' => 'error', 'message' => 'Operation not allowed.']);
+						echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_operation_not_allowed')]);
 						exit;
 					}
 					$tabId = Minz_Request::paramString('tab_id');
 					$newName = trim(Minz_Request::paramString('value'));
 					if (empty($newName)) {
 						http_response_code(400);
-						echo json_encode(['status' => 'error', 'message' => 'Tab name cannot be empty.']);
+						echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_tab_name_empty')]);
 						exit;
 					}
 					foreach ($layout as &$tab) {
@@ -826,7 +832,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 				case 'reorder':
 					if ($mode === 'categories') {
 						http_response_code(403);
-						echo json_encode(['status' => 'error', 'message' => 'Operation not allowed.']);
+						echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_operation_not_allowed')]);
 						exit;
 					}
 					$tabIds = explode(',', Minz_Request::paramString('tab_ids'));
@@ -844,17 +850,18 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 						echo json_encode(['status' => 'success']);
 					} else {
 						http_response_code(400);
-						echo json_encode(['status' => 'error', 'message' => 'Invalid tab order.']);
+						echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_invalid_tab_order')]);
 					}
 					break;
 				default:
 					http_response_code(400);
-					echo json_encode(['status' => 'error', 'message' => 'Unknown tab operation.']);
+					echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_unknown_tab_operation')]);
 					exit;
 			}
 		} catch (Exception $e) {
 			http_response_code(500);
-			echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+			error_log('FreshVibesView updateTabAction error: ' . $e->getMessage());
+			echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_server')]);
 		}
 		exit;
 	}

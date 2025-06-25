@@ -272,7 +272,6 @@ function initializeDashboard(freshvibesView) {
 				.then(newFeedsData => {
 					if (newFeedsData) {
 						state.feeds = newFeedsData;
-						// Your debug log to confirm success
 						renderTabs();
 						const activeTab = state.layout.find(t => t.id === state.activeTabId);
 						if (activeTab) {
@@ -284,8 +283,6 @@ function initializeDashboard(freshvibesView) {
 					console.error('Error during AJAX refresh:', error);
 				})
 				.finally(() => {
-					// This is the key: We schedule the next refresh only AFTER the current one is completely finished.
-					// This makes the loop resilient to the DOM update issues that are breaking setInterval.
 					const nextTime = new Date(Date.now() + refreshMs);
 					console.log('Next refresh scheduled for:', nextTime.toLocaleTimeString());
 					setTimeout(refreshLoop, refreshMs);
@@ -871,8 +868,8 @@ function initializeDashboard(freshvibesView) {
 				group: 'freshvibes-feeds',
 				animation: 0,
 				handle: '.freshvibes-container-header',
-				delay: 300, // Add delay
-				delayOnTouchOnly: true, // Only on touch devices	
+				delay: 300,
+				delayOnTouchOnly: true,
 				onEnd: evt => {
 					const sourcePanel = evt.from.closest('.freshvibes-panel');
 					const targetPanel = evt.to.closest('.freshvibes-panel');
@@ -900,8 +897,8 @@ function initializeDashboard(freshvibesView) {
 				animation: 150,
 				draggable: '.freshvibes-tab',
 				filter: '.tab-add-button',
-				delay: 300, // Add 300ms delay before drag starts
-				delayOnTouchOnly: true, // Only apply delay on touch devices
+				delay: 300,
+				delayOnTouchOnly: true,
 				onEnd: evt => {
 					// Get the new order of tabs
 					const newOrder = Array.from(tabsContainer.querySelectorAll('.freshvibes-tab')).map(tab => tab.dataset.tabId);
@@ -1028,7 +1025,7 @@ function initializeDashboard(freshvibesView) {
 
 			function doDrag(e) {
 				const newHeight = startHeight + e.clientY - startY;
-				if (newHeight > 50) { // Set a minimum height
+				if (newHeight > 50) { // Minimum height to prevent too small containers
 					content.style.height = newHeight + 'px';
 				}
 			}
@@ -1042,7 +1039,6 @@ function initializeDashboard(freshvibesView) {
 				const finalHeight = content.offsetHeight;
 				editorInput.value = finalHeight;
 
-				// --- Direct Save Logic ---
 				// This saves the resized value directly to ensure it always works.
 				const feedId = container.dataset.feedId;
 				const editor = container.querySelector('.feed-settings-editor');
@@ -1063,7 +1059,6 @@ function initializeDashboard(freshvibesView) {
 						}
 					}
 				}).catch(error => console.error('Error saving feed settings:', error));
-				// --- End of Direct Save Logic ---
 			}
 
 			document.addEventListener('mousemove', doDrag);
