@@ -183,7 +183,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 
 		$this->view->viewMode = $mode;
 		$this->view->rss_title = _t('ext.FreshVibesView.title');
-		$this->view->refreshEnabled = $userConf->attributeBool(FreshVibesViewExtension::REFRESH_ENABLED_CONFIG_KEY) ?? 0;
+		$this->view->refreshEnabled = $userConf->attributeBool(FreshVibesViewExtension::REFRESH_ENABLED_CONFIG_KEY) ?? false;
 		$this->view->refreshInterval = $userConf->attributeInt(FreshVibesViewExtension::REFRESH_INTERVAL_CONFIG_KEY) ?? 15;
 		$this->view->feedUrl = Minz_Url::display([], 'html', false) . '?get=f_';
 		$this->view->categories = FreshRSS_Context::categories();
@@ -520,6 +520,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 						'compactSnippet' => $this->generateSnippet($entry, 30, 1),
 						'detailedSnippet' => $this->generateSnippet($entry, 100, 3),
 						'isRead' => $entry->isRead(),
+						'isFavorite' => $entry->isFavorite(),
 						'author' => html_entity_decode($entry->author(), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
 						'tags' => $entry->tags(),
 						'feedId' => $feedId,
@@ -872,18 +873,11 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 		$feedId = Minz_Request::paramInt('feed_id');
 		$limit = Minz_Request::paramString('limit');
 		$fontSize = Minz_Request::paramString('font_size');
-		$headerColor = Minz_Request::paramStringNull('header_color');
 		$maxHeight = Minz_Request::paramString('max_height');
 		$displayMode = Minz_Request::paramString('display_mode');
 
 		$limitForValidation = is_numeric($limit) ? (int)$limit : $limit;
 		$isValidMaxHeight = (is_numeric($maxHeight) && intval($maxHeight) >= 0) || in_array($maxHeight, ['unlimited', 'fit'], true);
-
-		if ($headerColor !== null && $headerColor !== '' && !preg_match('/^#[0-9A-Fa-f]{6}$/', $headerColor)) {
-			http_response_code(400);
-			echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_invalid_request')]);
-			exit;
-		}
 
 		if (is_numeric($maxHeight) && ($maxHeight < 0 || $maxHeight > 10000)) {
 			http_response_code(400);
@@ -926,17 +920,21 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 			$userConf->_attribute($maxHeightPrefix . $feedId, $maxHeight);
 			$userConf->_attribute($displayModePrefix . $feedId, $displayMode);
 
-			if ($headerColor !== null) {
+			// Only update header color if it was provided in the request
+			if (isset($_POST['header_color'])) {
+				$headerColor = Minz_Request::paramString('header_color');
+				if ($headerColor !== '' && !preg_match('/^#[0-9A-Fa-f]{6}$/', $headerColor)) {
+					http_response_code(400);
+					echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_invalid_request')]);
+					exit;
+				}
 				if ($headerColor === '') {
-					if (method_exists($userConf, 'removeAttribute')) {
-						$userConf->removeAttribute($headerPrefix . $feedId);
-					} else {
-						unset($userConf->{$headerPrefix . $feedId});
-					}
+					$userConf->_attribute($headerPrefix . $feedId, null);
 				} else {
 					$userConf->_attribute($headerPrefix . $feedId, $headerColor);
 				}
 			}
+
 			$userConf->save();
 			echo json_encode(['status' => 'success']);
 		} catch (Exception $e) {
@@ -951,13 +949,13 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 		$this->validatePostRequest();
 		header('Content-Type: application/json');
 
-		// Treat all IDs as strings to prevent type mismatch issues.
-		$feedId = Minz_Request::paramString('feed_id');
+		$feedId = Minz_Request::paramString('feed_id');  // Changed from paramInt to paramString
 		$targetTabId = Minz_Request::paramString('target_tab_id');
 		$sourceTabId = Minz_Request::paramString('source_tab_id');
 
-		if ($feedId == '' || $targetTabId == '' || $sourceTabId == '') {
+		if ($feedId === '' || $targetTabId === '' || $sourceTabId === '') {
 			http_response_code(400);
+			echo json_encode(['status' => 'error', 'message' => _t('ext.FreshVibesView.error_invalid_request')]);
 			exit;
 		}
 
@@ -974,7 +972,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 
 						$filtered_column = [];
 						foreach ($column as $id) {
-							if ((string)$id !== $feedId) {
+							if ((string)$id !== (string)$feedId) {  // Cast both to string for comparison
 								$filtered_column[] = $id;
 							}
 						}
@@ -1263,11 +1261,7 @@ class FreshExtension_freshvibes_Controller extends Minz_ActionController {
 
 				if ($headerColor !== null) {
 					if ($headerColor === '') {
-						if (method_exists($userConf, 'removeAttribute')) {
-							$userConf->removeAttribute($headerPrefix . $feedId);
-						} else {
-							unset($userConf->{$headerPrefix . $feedId});
-						}
+						$userConf->_attribute($headerPrefix . $feedId, null);
 					} else {
 						$userConf->_attribute($headerPrefix . $feedId, $headerColor);
 					}
