@@ -203,12 +203,12 @@ abstract class Minz_Extension {
 	}
 
 	/**
-	 * Return the url for a given file.
+	 * Return the URL of a file in the current extension.
 	 *
-	 * @param string $filename name of the file to serve.
-	 * @param '' $type MIME type of the file to serve. Deprecated: always use the file extension.
-	 * @param bool $isStatic indicates if the file is a static file or a user file. Default is static.
-	 * @return string url corresponding to the file.
+	 * @param string $filename The name of the file.
+	 * @param string $type Optional. The type of file (e.g., 'css', 'js'), used as a URL parameter. Defaults to an empty string.
+	 * @param bool $add_version Optional. Add a version parameter to prevent caching. `true` by default.
+	 * @return string The URL of the extension file.
 	 */
 	final public function getFileUrl(string $filename, string $type = '', bool $isStatic = true): string {
 		if ($isStatic) {
