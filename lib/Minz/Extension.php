@@ -207,7 +207,7 @@ abstract class Minz_Extension {
 	 *
 	 * @param string $filename The name of the file.
 	 * @param string $type Optional. The type of file (e.g., 'css', 'js'), used as a URL parameter. Defaults to an empty string.
-	 * @param bool $add_version Optional. Add a version parameter to prevent caching. `true` by default.
+	 * @param bool   $isStatic indicates if the file is a static file or a user file. Default is static.
 	 * @return string The URL of the extension file.
 	 */
 	final public function getFileUrl(string $filename, string $type = '', bool $isStatic = true): string {
