@@ -348,10 +348,9 @@ function close_slider_listener(ev) {
 	if (data_leave_validation(slider) || confirm(context.i18n.confirmation_default)) {
 		slider.querySelectorAll('form').forEach(function (f) { f.reset(); });
 		document.documentElement.classList.remove('slider-active');
-		return true;
-	} else {
-		return false;
+		return;
 	}
+	ev.preventDefault();
 }
 // </slider>
 
