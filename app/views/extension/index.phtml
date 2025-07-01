@@ -6,41 +6,61 @@
 <main class="post">
 	<h1><?= _t('admin.extensions.title') ?></h1>
 	<form id="form-extension" method="post">
-	<input type="hidden" name="_csrf" value="<?= FreshRSS_Auth::csrfToken() ?>" />
-	<?php if (!empty($this->extension_list['system'])) { ?>
-	<h2><?= _t('admin.extensions.system') ?></h2>
-	<ul class="manage-list">
-	<?php
-		foreach ($this->extension_list['system'] as $ext) {
-			$this->ext_details = $ext; ?>
-			<li>
-			<?php $this->renderHelper('extension/details'); ?>
-			</li>
+		<input type="hidden" name="_csrf" value="<?= FreshRSS_Auth::csrfToken() ?>" />
+		<?php if (!empty($this->extension_list['system'])) { ?>
+			<h2><?= _t('admin.extensions.system') ?></h2>
+			<ul class="manage-list">
+				<?php
+				foreach ($this->extension_list['system'] as $ext) {
+					$this->ext_details = $ext; ?>
+					<li>
+						<?php $this->renderHelper('extension/details'); ?>
+					</li>
+				<?php } ?>
+			</ul>
 		<?php } ?>
-	</ul>
-	<?php } ?>
 
-	<?php if (!empty($this->extension_list['user'])) { ?>
-	<h2><?= _t('admin.extensions.user') ?></h2>
-	<ul class="manage-list">
-	<?php
-		foreach ($this->extension_list['user'] as $ext) {
-			$this->ext_details = $ext; ?>
-			<li>
-			<?php $this->renderHelper('extension/details'); ?>
-			</li>
+		<?php if (!empty($this->extension_list['user'])) { ?>
+			<h2><?= _t('admin.extensions.user') ?></h2>
+			<ul class="manage-list">
+				<?php
+				foreach ($this->extension_list['user'] as $ext) {
+					$this->ext_details = $ext; ?>
+					<li>
+						<?php $this->renderHelper('extension/details'); ?>
+					</li>
+				<?php } ?>
+			</ul>
+		<?php }
+
+		if (empty($this->extension_list['system']) && empty($this->extension_list['user'])) {
+		?>
+			<p class="alert alert-warn"><?= _t('admin.extensions.empty_list') ?></p>
 		<?php } ?>
-		</ul>
-	<?php }
-
-	if (empty($this->extension_list['system']) && empty($this->extension_list['user'])) {
-	?>
-	<p class="alert alert-warn"><?= _t('admin.extensions.empty_list') ?></p>
-	<?php } ?>
 	</form>
 
 	<?php if (!empty($this->available_extensions)) { ?>
 		<h2><?= _t('admin.extensions.community') ?></h2>
+		<?php if (FreshRSS_Auth::hasAccess('admin')) {
+			$updateCount = 0;
+			foreach ($this->available_extensions as $ext) {
+				if (
+					isset($this->extensions_installed[$ext['entrypoint']]) &&
+					version_compare(strval($this->extensions_installed[$ext['entrypoint']]), strval($ext['version'])) < 0
+				) {
+					$updateCount++;
+				}
+			}
+
+			if ($updateCount > 0) { ?>
+				<form method="post" action="<?= _url('extension', 'updateall') ?>" class="form-group">
+					<input type="hidden" name="_csrf" value="<?= FreshRSS_Auth::csrfToken() ?>" />
+					<button type="submit" class="btn btn-important">
+						<?= _i('refresh') ?> <?= _t('admin.extensions.manage.update_count', $updateCount) ?>
+					</button>
+				</form>
+		<?php }
+		} ?>
 		<div class="table-wrapper scrollbar-thin">
 			<table>
 				<tr>
@@ -48,6 +68,9 @@
 					<th><?= _t('admin.extensions.version') ?></th>
 					<th><?= _t('admin.extensions.author') ?></th>
 					<th><?= _t('admin.extensions.description') ?></th>
+					<?php if (FreshRSS_Auth::hasAccess('admin')) { ?>
+						<th><?= _t('admin.extensions.manage.actions') ?></th>
+					<?php } ?>
 				</tr>
 				<?php foreach ($this->available_extensions as $ext) { ?>
 					<tr>
@@ -59,15 +82,40 @@
 							<?php if (isset($this->extensions_installed[$ext['entrypoint']])) { ?>
 								<?php if (version_compare(strval($this->extensions_installed[$ext['entrypoint']]), strval($ext['version'])) >= 0) { ?>
 									<span class="alert alert-success">
-										<?= _t('admin.extensions.latest') ?>
+										<?= _t('admin.extensions.version_installed', $this->extensions_installed[$ext['entrypoint']]) ?>
 									</span>
 								<?php } elseif (strval($this->extensions_installed[$ext['entrypoint']]) !== strval($ext['version'])) { ?>
 									<span class="alert alert-warn">
-										<?= _t('admin.extensions.update') ?>
+										<?= _t('admin.extensions.manage.update_available_detailed', $this->extensions_installed[$ext['entrypoint']], $ext['version']) ?>
+										<?php
+										$releaseUrl = FreshRSS_extension_Controller::getReleaseUrl($ext);
+										if ($releaseUrl !== null) { ?>
+											<a href="<?= htmlspecialchars($releaseUrl) ?>" target="_blank" rel="noopener"><?= _t('admin.extensions.manage.view_release') ?></a>
+										<?php } ?>
 									</span>
 								<?php } ?>
 							<?php } ?>
 						</td>
+						<?php if (FreshRSS_Auth::hasAccess('admin')) { ?>
+							<td>
+								<?php
+								$is_installed = isset($this->extensions_installed[$ext['entrypoint']]);
+								$needs_update = $is_installed && version_compare(strval($this->extensions_installed[$ext['entrypoint']]), strval($ext['version'])) < 0;
+
+								if ($needs_update || !$is_installed) { ?>
+									<form method="post" action="<?= _url('extension', 'download') ?>">
+										<input type="hidden" name="_csrf" value="<?= FreshRSS_Auth::csrfToken() ?>" />
+										<input type="hidden" name="e" value="<?= urlencode($ext['entrypoint']) ?>" />
+										<input type="hidden" name="url" value="<?= htmlspecialchars($ext['url']) ?>" />
+										<input type="hidden" name="version" value="<?= htmlspecialchars($ext['version']) ?>" />
+										<input type="hidden" name="directory" value="<?= htmlspecialchars($ext['directory']) ?>" />
+										<button type="submit" class="btn btn-important btn-icon-text">
+											<?= $needs_update ? _i('refresh') . _t('admin.extensions.manage.install_update') : _i('add') . _t('admin.extensions.manage.install_extension') ?>
+										</button>
+									</form>
+								<?php } ?>
+							</td>
+						<?php } ?>
 					</tr>
 				<?php } ?>
 			</table>
@@ -80,12 +128,12 @@
 <?php $class = isset($this->extension) ? ' active' : ''; ?>
 <?php $closelink = isset($this->extension) ? _url('extension', 'index') : ''; ?>
 <aside id="slider">
-<a class="toggle_aside" href="<?= $closelink ?>#close"><img class="icon" src="../themes/icons/close.svg" loading="lazy" alt="❌"></a>
+	<a class="toggle_aside" href="<?= $closelink ?>#close"><img class="icon" src="../themes/icons/close.svg" loading="lazy" alt="❌"></a>
 	<div id="slider-content">
 		<?php
-			if (isset($this->extension)) {
-				$this->renderHelper('extension/configure');
-			}
+		if (isset($this->extension)) {
+			$this->renderHelper('extension/configure');
+		}
 		?>
 	</div>
 </aside>

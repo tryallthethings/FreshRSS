@@ -579,6 +579,7 @@ button[disabled]:hover, input[disabled]:hover {
 
 .btn-important {
 	font-weight: bold;
+	white-space: nowrap;
 }
 
 .btn-state1.hide {
