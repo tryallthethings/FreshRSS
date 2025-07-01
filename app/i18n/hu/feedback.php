@@ -50,11 +50,22 @@ return array(
 			'ko' => 'A(z) %s nem kapcsolható be. <a href="%s">nézd meg a FreshRSS log-okat</a> a részletekért.',
 			'ok' => 'A(z) %s bekapcsolása sikeres',
 		),
-		'invalid_view_mode' => 'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
+		'install_failed' => '%s installation failed',	// TODO
+		'install_failed_rate_limited_generic' => 'Installation of %s failed due to rate limiting. Please try again later.',	// TODO
+		'installed' => '%s has been installed successfully',	// TODO
+		'invalid_view_mode' => 'Invalid view mode “%s”! Fall back to “Normal view”.',	// DIRTY
 		'no_access' => 'Nincs hozzáférésed ehhez: %s',
 		'not_enabled' => 'A(z) %s nincs bekapcsolva',
 		'not_found' => 'A(z) %s nem létezik',
 		'removed' => 'A(z) %s eltávolítva',
+		'update_all' => array(
+			'failed_list' => 'Failed extensions: %s',	// TODO
+			'none' => 'All extensions are up to date',	// TODO
+			'ok' => '%d extensions updated successfully',	// TODO
+			'partial' => '%d extensions updated, %d failed',	// TODO
+		),
+		'update_failed' => '%s update failed',	// TODO
+		'updated' => '%s has been updated successfully',	// TODO
 	),
 	'import_export' => array(
 		'export_no_zip_extension' => 'A ZIP kiterjesztés nem létezik a szerveren. Exportáld a fájlokat egyesével.',

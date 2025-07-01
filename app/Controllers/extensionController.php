@@ -403,22 +403,30 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 			Minz_Log::error('Cannot determine archive URL for ' . $info['entrypoint']);
 			return false;
 		}
+
 		$tmpFile = tempnam(TMP_PATH, 'ext');
 		if ($tmpFile === false) {
+			Minz_Log::error('Could not create temporary file for download.');
 			return false;
 		}
-		$ok = $this->downloadFile($archive, $tmpFile);
-		if (!$ok) {
-			@unlink($tmpFile);
-			return false;
-		}
-		$tmpDir = tempnam(TMP_PATH, 'ext');
-		if ($tmpDir === false) {
+
+		if (!$this->downloadFile($archive, $tmpFile)) {
 			unlink($tmpFile);
 			return false;
 		}
+
+		$tmpDir = tempnam(TMP_PATH, 'ext');
+		if ($tmpDir === false) {
+			Minz_Log::error('Could not create temporary directory for extraction.');
+			unlink($tmpFile);
+			return false;
+		}
+
 		unlink($tmpDir);
-		mkdir($tmpDir, 0777, true);
+		if (!mkdir($tmpDir, 0777, true) && !is_dir($tmpDir)) {
+			unlink($tmpFile);
+			return false;
+		}
 		$zip = new ZipArchive();
 		if ($zip->open($tmpFile) !== true) {
 			unlink($tmpFile);
@@ -430,30 +438,38 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 		$zip->close();
 		unlink($tmpFile);
 
+		// Repository archives often contain a single root folder (e.g., my-repo-main).
+		// We need to find the actual extension source inside the extracted files.
 		$entries = array_values(array_diff(scandir($tmpDir) ?: [], ['.', '..']));
 		$root = $tmpDir;
 		if (count($entries) === 1 && is_dir($tmpDir . '/' . $entries[0])) {
 			$root = $tmpDir . '/' . $entries[0];
 		}
+
 		$source = $root . '/' . $info['directory'];
 		if (!is_dir($source)) {
 			$source = $root;
 		}
+
 		$metaFile = $source . '/metadata.json';
 		if (!is_file($metaFile)) {
 			recursive_unlink($tmpDir);
 			Minz_Log::error('Missing metadata.json for ' . $info['entrypoint']);
 			return false;
 		}
+
 		$meta = json_decode(file_get_contents($metaFile) ?: '', true);
 		if (!is_array($meta) || empty($meta['entrypoint']) || !is_string($meta['entrypoint'])) {
 			recursive_unlink($tmpDir);
 			Minz_Log::error('Invalid metadata.json for ' . $info['entrypoint']);
 			return false;
 		}
+
 		$dest = THIRDPARTY_EXTENSIONS_PATH . '/' . basename($meta['entrypoint']);
 		// Security: Ensure destination is within the extensions directory
-		if (strpos(realpath(dirname($dest)), realpath(THIRDPARTY_EXTENSIONS_PATH)) !== 0) {
+		$realDest = realpath(dirname($dest));
+		$realExtPath = realpath(THIRDPARTY_EXTENSIONS_PATH);
+		if ($realDest === false || $realExtPath === false || strpos($realDest, $realExtPath) !== 0) {
 			recursive_unlink($tmpDir);
 			Minz_Log::error('Invalid destination path for ' . $info['entrypoint']);
 			return false;
@@ -468,10 +484,12 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 
 		$res = $this->recursiveCopy($source, $dest);
 		recursive_unlink($tmpDir);
+
 		if ($res) {
 			$this->sanitizeExtension($dest);
 			Minz_Log::notice('Extension ' . $info['entrypoint'] . ' installed to ' . $dest);
 		}
+
 		return $res;
 	}
 
@@ -489,59 +507,69 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 		$version = $info['version'];
 		$repo = $this->detectRepositoryPlatform($url);
 
-		if ($repo !== null && $repo['platform'] === 'github') {
-			$api = $repo['api_base'] . '/repos/' . $repo['project_path'] . '/releases/tags/' . rawurlencode($version);
-			$json = $this->downloadJson($api);
-			if (is_array($json) && is_string($json['zipball_url'] ?? null)) {
-				return $json['zipball_url'];
-			}
-			Minz_Log::debug('No GitHub release found for version ' . $version . ', falling back to default branch');
-			$repoInfo = $this->downloadJson($repo['api_base'] . '/repos/' . $repo['project_path']);
-			if (!is_array($repoInfo) || !is_string($repoInfo['default_branch'] ?? null)) {
-				Minz_Log::error('Failed to detect default branch for GitHub repository: ' . $url);
-				return '';
-			}
-			$branch = $repoInfo['default_branch'];
-			return $url . '/archive/refs/heads/' . rawurlencode($branch) . '.zip';
+		if ($repo === null) {
+			Minz_Log::warning('Unknown repository platform for ' . $url . ', cannot determine archive URL.');
+			return '';
 		}
 
-		if ($repo !== null && $repo['platform'] === 'forgejo') {
+		// Handle GitHub repositories
+		if ($repo['platform'] === 'github') {
+			$api = $repo['api_base'] . '/repos/' . $repo['project_path'] . '/releases/tags/' . rawurlencode($version);
+			$json = $this->downloadJson($api);
+			if (is_array($json) && !empty($json['zipball_url']) && is_string($json['zipball_url'])) {
+				return $json['zipball_url'];
+			}
+
+			Minz_Log::debug('No GitHub release found for version ' . $version . ', falling back to default branch.');
+			$repoInfo = $this->downloadJson($repo['api_base'] . '/repos/' . $repo['project_path']);
+			if (is_array($repoInfo) && !empty($repoInfo['default_branch']) && is_string($repoInfo['default_branch'])) {
+				return $url . '/archive/refs/heads/' . rawurlencode($repoInfo['default_branch']) . '.zip';
+			}
+			Minz_Log::error('Failed to detect default branch for GitHub repository: ' . $url);
+			return '';
+		}
+
+		// Handle Forgejo / Gitea repositories
+		if ($repo['platform'] === 'forgejo') {
 			// Forgejo uses similar API to Gitea
 			$api = $repo['api_base'] . '/repos/' . $repo['project_path'] . '/releases/tags/' . rawurlencode($version);
 			$json = $this->downloadJson($api);
-			if (is_array($json) && is_string($json['zipball_url'] ?? null)) {
+			if (is_array($json) && !empty($json['zipball_url']) && is_string($json['zipball_url'])) {
 				return $json['zipball_url'];
 			}
-			Minz_Log::debug('No Forgejo release found for version ' . $version . ', falling back to default branch');
+
+			Minz_Log::debug('No Forgejo/Gitea release found for version ' . $version . ', falling back to default branch.');
 			$repoInfo = $this->downloadJson($repo['api_base'] . '/repos/' . $repo['project_path']);
-			if (!is_array($repoInfo) || !is_string($repoInfo['default_branch'] ?? null)) {
-				Minz_Log::error('Failed to detect default branch for Forgejo repository: ' . $url);
-				return '';
+			if (is_array($repoInfo) && !empty($repoInfo['default_branch']) && is_string($repoInfo['default_branch'])) {
+				return $url . '/archive/' . rawurlencode($repoInfo['default_branch']) . '.zip';
 			}
-			$branch = $repoInfo['default_branch'];
-			return $url . '/archive/' . rawurlencode($branch) . '.zip';
+
+			Minz_Log::error('Failed to detect default branch for Forgejo/Gitea repository: ' . $url);
+			return '';
 		}
 
-		if ($repo !== null && $repo['platform'] === 'gitlab') {
+		// Handle GitLab repositories
+		if ($repo['platform'] === 'gitlab') {
 			$encoded = rawurlencode($repo['project_path']);
-			$base = $repo['api_base'] . '/projects/' . $encoded;
-			$release = $this->downloadJson($base . '/releases/' . rawurlencode($version));
-			if (is_array($release)) {
-				$assets = $release['assets'] ?? null;
-				$sources = is_array($assets) ? ($assets['sources'] ?? null) : null;
-				if (is_array($sources) && isset($sources[0]) && is_array($sources[0]) && is_string($sources[0]['url'] ?? null)) {
-					return $sources[0]['url'];
-				}
+			$baseApiUrl = $repo['api_base'] . '/projects/' . $encoded;
+			$release = $this->downloadJson($baseApiUrl . '/releases/' . rawurlencode($version));
+			if (
+				is_array($release) && !empty($release['assets']) && is_array($release['assets'])
+				&& !empty($release['assets']['sources']) && is_array($release['assets']['sources'])
+				&& !empty($release['assets']['sources'][0]) && is_array($release['assets']['sources'][0])
+				&& !empty($release['assets']['sources'][0]['url']) && is_string($release['assets']['sources'][0]['url'])
+			) {
+				return $release['assets']['sources'][0]['url'];
 			}
-			Minz_Log::debug('No GitLab release found for version ' . $version . ', falling back to default branch');
-			$projectInfo = $this->downloadJson($base);
-			if (!is_array($projectInfo) || !is_string($projectInfo['default_branch'] ?? null)) {
-				Minz_Log::error('Failed to detect default branch for GitLab repository: ' . $url);
-				return '';
+
+			Minz_Log::debug('No GitLab release found for version ' . $version . ', falling back to default branch.');
+			$projectInfo = $this->downloadJson($baseApiUrl);
+			if (is_array($projectInfo) && !empty($projectInfo['default_branch']) && is_string($projectInfo['default_branch'])) {
+				$branch = $projectInfo['default_branch'];
+				return $url . '/-/archive/' . rawurlencode($branch) . '/' . $repo['repo'] . '-' . rawurlencode($branch) . '.zip';
 			}
-			$branch = $projectInfo['default_branch'];
-			$repoName = $repo['repo'];
-			return $url . '/-/archive/' . rawurlencode($branch) . '/' . $repoName . '-' . $branch . '.zip';
+			Minz_Log::error('Failed to detect default branch for GitLab repository: ' . $url);
+			return '';
 		}
 
 		Minz_Log::warning('Unknown repository platform for ' . $url . ', cannot determine archive URL');
@@ -549,12 +577,14 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 	}
 
 	/**
-	 * Detects the repository platform (GitHub, GitLab, Forgejo/Gitea) from a repository URL
+	 * Detects the repository platform (GitHub, GitLab, Forgejo/Gitea) from a URL.
 	 *
-	 * Uses API endpoints and HTML inspection to identify the platform type.
+	 * It uses a multi-step process: first, a hostname check for github.com.
+	 * Second, it probes known API endpoints for self-hosted instances.
+	 * Finally, it falls back to inspecting HTML content for platform markers.
 	 *
-	 * @param string $url Repository URL
-	 * @return array{platform:string,api_base:string,project_path:string,owner:string,repo:string}|null Platform information or null if detection fails
+	 * @param string $url The repository URL.
+	 * @return array{platform:string,api_base:string,project_path:string,owner:string,repo:string}|null Platform information or null if detection fails.
 	 */
 	private function detectRepositoryPlatform(string $url): ?array {
 		$parsed = parse_url($url);
@@ -569,51 +599,56 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 		if (count($parts) < 2) {
 			return null;
 		}
-		$repo = preg_replace('#\.git$#', '', (string)array_pop($parts));
-		$owner = implode('/', $parts);
-		$project = $owner . '/' . $repo;
 
-		// GitHub is always at github.com
+		$repoName = preg_replace('/\.git$/', '', (string)array_pop($parts));
+		if ($repoName === null || $repoName === '') {
+			return null;
+		}
+		$owner = implode('/', $parts);
+		$project = $owner . '/' . $repoName;
+
+		// Hostname check for GitHub, which is unambiguous.
 		if ($host === 'github.com') {
 			return [
 				'platform' => 'github',
 				'api_base' => 'https://api.github.com',
 				'project_path' => $project,
 				'owner' => $owner,
-				'repo' => $repo,
+				'repo' => $repoName,
 			];
 		}
 
-		// For self-hosted instances, try API detection
+		// API endpoint probing for self-hosted instances.
 		$context = stream_context_create([
 			'http' => [
-				'header' => ['User-Agent: FreshRSS'],
+				'header' => ['User-Agent: ' . FRESHRSS_USERAGENT],
 				'timeout' => 10,
 				'ignore_errors' => true,
 			],
 		]);
 
-		// Try Forgejo/Gitea API (v1)
-		$response = @file_get_contents($base . '/api/v1/version', false, $context);
+		// Try Forgejo/Gitea API (v1).
+		$response = file_get_contents($base . '/api/v1/version', false, $context);
 		if ($response !== false) {
 			$json = json_decode($response, true);
-			if (is_array($json) && isset($json['version']) && is_string($json['version'])) {
+			// Check for a valid JSON response with a version string.
+			if (is_array($json) && !empty($json['version']) && is_string($json['version'])) {
 				Minz_Log::debug('Detected Forgejo/Gitea instance at ' . $host);
 				return [
 					'platform' => 'forgejo',
 					'api_base' => $base . '/api/v1',
 					'project_path' => $project,
 					'owner' => $owner,
-					'repo' => $repo,
+					'repo' => $repoName,
 				];
 			}
 		}
 
-		// Try GitLab API (v4)
-		$encoded = rawurlencode($project);
-		$response = @file_get_contents($base . '/api/v4/projects/' . $encoded, false, $context);
+		// Try GitLab API (v4).
+		$response = file_get_contents($base . '/api/v4/projects/' . rawurlencode($project), false, $context);
 		if ($response !== false) {
 			$json = json_decode($response, true);
+			// Check for a valid JSON response with a GitLab-specific key.
 			if (is_array($json) && isset($json['path_with_namespace'])) {
 				Minz_Log::debug('Detected GitLab instance at ' . $host);
 				return [
@@ -621,13 +656,13 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 					'api_base' => $base . '/api/v4',
 					'project_path' => $project,
 					'owner' => $owner,
-					'repo' => $repo,
+					'repo' => $repoName,
 				];
 			}
 		}
 
-		// If API detection fails, try HTML inspection as last resort
-		$page = @file_get_contents($url, false, $context);
+		// 3. HTML content inspection as a fallback.
+		$page = file_get_contents($url, false, $context);
 		if ($page !== false) {
 			// Check for Forgejo/Gitea markers
 			if (preg_match('/forgejo|gitea|data-gitea-/i', $page)) {
@@ -637,7 +672,7 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 					'api_base' => $base . '/api/v1',
 					'project_path' => $project,
 					'owner' => $owner,
-					'repo' => $repo,
+					'repo' => $repoName,
 				];
 			}
 
@@ -649,7 +684,7 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 					'api_base' => $base . '/api/v4',
 					'project_path' => $project,
 					'owner' => $owner,
-					'repo' => $repo,
+					'repo' => $repoName,
 				];
 			}
 		}
@@ -659,11 +694,11 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 	}
 
 	/**
-	 * Downloads a file from a URL using cURL with proper security checks
+	 * Downloads a file from a URL using cURL with proper security settings.
 	 *
-	 * @param string $url Source URL (must be http or https)
-	 * @param string $dest Destination file path
-	 * @return bool True if download succeeded, false otherwise
+	 * @param string $url Source URL (must be http or https).
+	 * @param string $dest Destination file path.
+	 * @return bool True if download succeeded, false otherwise.
 	 */
 	private function downloadFile(string $url, string $dest): bool {
 		// Validate URL scheme
@@ -684,8 +719,8 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 		}
 
 		$headers = [];
-		// GitHub API requires specific headers
-		if (strpos($url, 'api.github.com') !== false) {
+		// GitHub API requires specific headers for API access.
+		if (str_contains($url, 'api.github.com')) {
 			$headers[] = 'Accept: application/vnd.github+json';
 			$headers[] = 'X-GitHub-Api-Version: 2022-11-28';
 		}
@@ -693,18 +728,15 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 		curl_setopt_array($ch, [
 			CURLOPT_FILE => $fp,
 			CURLOPT_FOLLOWLOCATION => true,
-			CURLOPT_MAXREDIRS => 4,
+			CURLOPT_MAXREDIRS => 5,
 			CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
 			CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
 			CURLOPT_USERAGENT => FRESHRSS_USERAGENT,
 			CURLOPT_TIMEOUT => 60,
 			CURLOPT_SSL_VERIFYPEER => true,
 			CURLOPT_SSL_VERIFYHOST => 2,
+			CURLOPT_HTTPHEADER => $headers,
 		]);
-
-		if (!empty($headers)) {
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		}
 
 		$result = curl_exec($ch);
 		$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -714,18 +746,18 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 
 		if ($result === false || $code < 200 || $code >= 300) {
 			unlink($dest);
-			$errorMsg = $result === false ? ' - ' . $error : ' - HTTP ' . $code;
-			Minz_Log::error('Download failed from ' . $url . $errorMsg);
+			Minz_Log::error('Download failed from ' . $url . ' (HTTP ' . $code . '): ' . $error);
 			return false;
 		}
+
 		return true;
 	}
 
 	/**
-	 * Downloads and parses JSON data from a URL
+	 * Downloads and parses JSON data from a URL.
 	 *
-	 * @param string $url JSON endpoint URL
-	 * @return array<mixed,mixed>|null Parsed JSON data or null on failure
+	 * @param string $url The JSON endpoint URL.
+	 * @return array<mixed,mixed>|null Parsed JSON data as an associative array, or null on failure.
 	 */
 	private function downloadJson(string $url): ?array {
 		$ch = curl_init($url);
@@ -733,12 +765,31 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 			Minz_Log::warning('Failed to initialize cURL for: ' . $url);
 			return null;
 		}
+
+		$responseHeaders = [];
+		curl_setopt(
+			$ch,
+			CURLOPT_HEADERFUNCTION,
+			function ($curl, $header) use (&$responseHeaders) {
+				if (!is_string($header)) {
+					return 0;
+				}
+				$len = strlen($header);
+				$headerParts = explode(':', $header, 2);
+				if (count($headerParts) < 2) {
+					return $len;
+				}
+				$responseHeaders[strtolower(trim($headerParts[0]))] = trim($headerParts[1]);
+				return $len;
+			}
+		);
+
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_FOLLOWLOCATION => true,
 			CURLOPT_USERAGENT => FRESHRSS_USERAGENT,
 			CURLOPT_TIMEOUT => 30,
-			CURLOPT_MAXREDIRS => 4,
+			CURLOPT_MAXREDIRS => 5,
 			CURLOPT_SSL_VERIFYPEER => true,
 			CURLOPT_SSL_VERIFYHOST => 2,
 			CURLOPT_HTTPHEADER => [
@@ -746,14 +797,26 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 				'Cache-Control: no-cache',
 			],
 		]);
+
 		$body = curl_exec($ch);
 		$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		$error = curl_error($ch);
 		curl_close($ch);
 
-		if ($body === false) {
+		if ($body === false || !is_string($body)) {
 			Minz_Log::warning('Network error fetching JSON from ' . $url . ': ' . $error);
 			return null;
+		}
+
+		if ($code === 403 && str_contains($url, 'api.github.com')) {
+			$resetDate = 'an hour';
+			if (isset($responseHeaders['x-ratelimit-reset'])) {
+				$resetDate = 'at ' . gmdate('H:i:s T', (int)$responseHeaders['x-ratelimit-reset']);
+			}
+			Minz_Log::error('GitHub API rate limit exceeded. Reset: ' . $resetDate);
+			$message = _t('feedback.extensions.install_failed_rate_limited_generic', $resetDate);
+			Minz_Request::bad($message, ['c' => 'extension', 'a' => 'index']);
+			// The Minz_Request::bad call will handle the redirect and exit.
 		}
 
 		if ($code === 404) {
@@ -776,9 +839,12 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 	}
 
 	/**
-	 * Removes potentially dangerous or unnecessary files from an extension directory
+	 * Removes potentially dangerous or unnecessary files from an extension directory.
 	 *
-	 * @param string $path Extension directory path
+	 * This function recursively scans for files and directories matching a list of
+	 * patterns (e.g., VCS directories, temp files, config files) and deletes them.
+	 *
+	 * @param string $path Extension directory path.
 	 */
 	private function sanitizeExtension(string $path): void {
 		$patterns = [
@@ -793,7 +859,7 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 			'.github',
 			'.circleci',
 
-			// Development
+			// Development artifacts
 			'tests',
 			'test',
 			'spec',
@@ -801,6 +867,10 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 			'.idea',
 			'.vscode',
 			'*.sublime*',
+			'composer.phar',
+			'yarn.lock',
+			'package-lock.json',
+			'*.log',
 
 			// Config and sensitive files
 			'.env*',
@@ -814,7 +884,7 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 			'*.secret',
 			'*.credentials',
 
-			// Temp files
+			// OS and temporary files
 			'*.swp',
 			'*.swo',
 			'*~',
@@ -822,29 +892,39 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 			'*.tmp',
 			'.DS_Store',
 			'Thumbs.db',
-
-			// Package files
-			'composer.phar',
-			'yarn.lock',
-			'package-lock.json',
-			'*.log'
 		];
 
-		foreach ($patterns as $pattern) {
-			foreach (glob($path . '/' . $pattern, GLOB_BRACE) as $file) {
-				recursive_unlink($file);
-			}
-			// Also check subdirectories
-			foreach (glob($path . '/*/' . $pattern, GLOB_BRACE) as $file) {
-				recursive_unlink($file);
+		if (!is_dir($path)) {
+			return;
+		}
+
+		$iterator = new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
+			RecursiveIteratorIterator::CHILD_FIRST
+		);
+
+		/** @var SplFileInfo $file */
+		foreach ($iterator as $file) {
+			$filename = $file->getFilename();
+			foreach ($patterns as $pattern) {
+				if (fnmatch($pattern, $filename)) {
+					Minz_Log::debug('Sanitizing: removing `' . $file->getPathname() . '` matching pattern `' . $pattern . '`');
+					recursive_unlink($file->getPathname());
+					// Once unlinked, continue to the next file in the iterator.
+					continue 2;
+				}
 			}
 		}
 	}
 
 	/**
-	 * Removes an existing extension by its entrypoint
+	 * Removes an existing extension directory by its entrypoint name.
 	 *
-	 * @param string $entrypoint Extension entrypoint identifier
+	 * It first attempts to find the extension via the ExtensionManager. As a fallback,
+	 * it scans the extensions directory and inspects `metadata.json` files to find a match.
+	 *
+	 * @param string $entrypoint The entrypoint identifier of the extension.
+	 * @return bool True on success, false on failure to remove.
 	 */
 	private function removeExistingExtension(string $entrypoint): bool {
 		// First try via extension manager
@@ -853,7 +933,7 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 			return recursive_unlink($ext->getPath());
 		}
 
-		// Fallback: scan directory including hidden folders
+		// Fallback for cases where the extension is not loaded by the manager.
 		$directories = scandir(THIRDPARTY_EXTENSIONS_PATH) ?: [];
 		foreach ($directories as $dir) {
 			if ($dir === '.' || $dir === '..') {
@@ -872,49 +952,55 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 	}
 
 	/**
-	 * Recursively copies files and directories
+	 * Recursively copies files and directories from a source to a destination.
 	 *
-	 * @param string $src Source path
-	 * @param string $dest Destination path
-	 * @return bool True if copy succeeded, false otherwise
+	 * @param string $src Source path.
+	 * @param string $dest Destination path.
+	 * @return bool True if copy succeeded, false otherwise.
 	 */
 	private function recursiveCopy(string $src, string $dest): bool {
-		// Security: Skip symbolic links to prevent directory traversal attacks
+		// Security: Do not follow symbolic links to prevent directory traversal.
 		if (is_link($src)) {
-			return false;
+			return true; // Skip symlinks
 		}
+
 		if (is_dir($src)) {
-			if (!is_dir($dest) && !mkdir($dest, 0777, true)) {
+			if (!is_dir($dest) && !mkdir($dest, 0755, true)) {
 				return false;
 			}
-			$files = array_diff((array)scandir($src), ['.', '..']);
+
+			$files = array_diff((array) scandir($src), ['.', '..']);
 			/** @var string $file */
 			foreach ($files as $file) {
 				if (!$this->recursiveCopy($src . '/' . $file, $dest . '/' . $file)) {
 					return false;
 				}
 			}
-			return true;
+		} elseif (!copy($src, $dest)) {
+			return false;
 		}
-		return copy($src, $dest);
+
+		return true;
 	}
 
 	/**
-	 * Gets the release URL for an extension based on its repository platform
+	 * Gets the release URL for an extension based on its repository platform.
 	 *
-	 * @param array{url:string,version:string} $ext Extension information with URL and version
-	 * @return string|null Release URL if the platform is recognized, null otherwise
+	 * @param array{url:string,version:string} $ext Extension data including URL and version.
+	 * @return string|null The release URL if the platform is recognized, otherwise null.
 	 */
 	public static function getReleaseUrl(array $ext): ?string {
 		$url = rtrim($ext['url'], '/');
 		$version = $ext['version'];
 
-		// Simple pattern matching for common platforms
-		if (strpos($url, 'github.com') !== false) {
+		// Common platform URL patterns for releases.
+		if (str_contains($url, 'github.com')) {
 			return $url . '/releases/tag/' . rawurlencode($version);
-		} elseif (strpos($url, 'gitlab') !== false || strpos($url, 'framagit.org') !== false) {
+		}
+		if (str_contains($url, 'gitlab') || str_contains($url, 'framagit.org')) {
 			return $url . '/-/releases/' . rawurlencode($version);
-		} elseif (strpos($url, 'forgejo') !== false || strpos($url, 'gitea') !== false || strpos($url, 'code.sitosis.com') !== false) {
+		}
+		if (str_contains($url, 'gitea') || str_contains($url, 'forgejo') || str_contains($url, 'codeberg.org')) {
 			return $url . '/releases/tag/' . rawurlencode($version);
 		}
 
@@ -922,10 +1008,9 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 	}
 
 	/**
-	 * Updates all installed extensions to their latest available versions
+	 * Updates all installed extensions that have a newer version available.
 	 *
-	 * This action is restricted to administrators only.
-	 * Must be called via POST request.
+	 * This action is restricted to administrators and must be called via a POST request.
 	 */
 	public function updateallAction(): void {
 		if (!FreshRSS_Auth::hasAccess('admin')) {
@@ -940,45 +1025,44 @@ class FreshRSS_extension_Controller extends FreshRSS_ActionController {
 			return;
 		}
 
-		Minz_Log::notice('Starting batch extension update');
+		Minz_Log::notice('Starting batch extension update process.');
 
 		// Build the installed extensions list like in indexAction
 		$installedExtensions = [];
-		$extensions = Minz_ExtensionManager::listExtensions();
-		foreach ($extensions as $ext) {
+		foreach (Minz_ExtensionManager::listExtensions() as $ext) {
 			$installedExtensions[$ext->getEntrypoint()] = $ext->getVersion();
 		}
 
 		$available = $this->getAvailableExtensionList();
-		$updated = 0;
-		$failed = 0;
-		$errors = [];
+		$updatedCount = 0;
+		$failedCount = 0;
+		$failedNames = [];
 
 		foreach ($available as $ext) {
+			$entrypoint = $ext['entrypoint'];
 			if (
-				isset($installedExtensions[$ext['entrypoint']]) &&
-				version_compare($installedExtensions[$ext['entrypoint']], strval($ext['version'])) < 0
+				isset($installedExtensions[$entrypoint]) &&
+				version_compare($installedExtensions[$entrypoint], (string) $ext['version']) < 0
 			) {
-
-				Minz_Log::notice('Updating extension: ' . $ext['name'] . ' from v' . $installedExtensions[$ext['entrypoint']] . ' to v' . $ext['version']);
+				Minz_Log::notice('Updating extension: ' . $ext['name'] . ' from v' . $installedExtensions[$entrypoint] . ' to v' . $ext['version']);
 
 				if ($this->downloadExtension($ext)) {
-					$updated++;
+					$updatedCount++;
 				} else {
-					$failed++;
-					$errors[] = $ext['name'];
+					$failedCount++;
+					$failedNames[] = $ext['name'];
 				}
 			}
 		}
 
-		if ($failed === 0 && $updated > 0) {
-			Minz_Request::good(_t('feedback.extensions.update_all.ok', $updated), $url_redirect);
-		} elseif ($updated === 0 && $failed === 0) {
+		if ($failedCount === 0 && $updatedCount > 0) {
+			Minz_Request::good(_t('feedback.extensions.update_all.ok', $updatedCount), $url_redirect);
+		} elseif ($updatedCount === 0 && $failedCount === 0) {
 			Minz_Request::good(_t('feedback.extensions.update_all.none'), $url_redirect);
 		} else {
-			$message = _t('feedback.extensions.update_all.partial', $updated, $failed);
-			if (!empty($errors)) {
-				$message .= ' ' . _t('feedback.extensions.update_all.failed_list', implode(', ', $errors));
+			$message = _t('feedback.extensions.update_all.partial', $updatedCount, $failedCount);
+			if (!empty($failedNames)) {
+				$message .= ' ' . _t('feedback.extensions.update_all.failed_list', implode(', ', $failedNames));
 			}
 			Minz_Request::bad($message, $url_redirect);
 		}

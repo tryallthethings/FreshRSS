@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Periksa log untuk menemukan alasan daftar ekstensi yang kosong.',
 		'enabled' => 'Diaktifkan',
 		'latest' => 'Terpasang',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => 'Nama',
 		'no_configure_view' => 'Ekstensi ini tidak dapat dikonfigurasi.',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => 'Ekstensi sistem (Anda tidak memiliki izin yang diperlukan)',
 		),
 		'title' => 'Ekstensi',
-		'update' => 'Pembaruan tersedia',
 		'user' => 'Ekstensi pengguna',
 		'version' => 'Versi',
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => 'Statistik',

@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Check the logs to determine the reason behind the empty extension list.',	// TODO
 		'enabled' => 'Включены',
 		'latest' => 'Установлено',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => 'Название',
 		'no_configure_view' => 'Это расширение не требует настройки.',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => 'Системное расширение (у вас нет необходимых разрешений)',
 		),
 		'title' => 'Расширения',
-		'update' => 'Доступно обновление',
 		'user' => 'Расширения пользователя',
 		'version' => 'Версия',
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => 'Статистика',

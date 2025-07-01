@@ -50,11 +50,22 @@ return array(
 			'ko' => '%s pòt pas èsser activada. <a href="%s">Consultatz los jornals d’audit de FreshRSS logs</a> per mai de detalhs.',
 			'ok' => '%s es ara activada',
 		),
-		'invalid_view_mode' => 'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
+		'install_failed' => '%s installation failed',	// TODO
+		'install_failed_rate_limited_generic' => 'Installation of %s failed due to rate limiting. Please try again later.',	// TODO
+		'installed' => '%s has been installed successfully',	// TODO
+		'invalid_view_mode' => 'Invalid view mode “%s”! Fall back to “Normal view”.',	// DIRTY
 		'no_access' => 'Avètz pas accès sus %s',
 		'not_enabled' => '%s es pas encara activada',
 		'not_found' => '%s existís pas',
 		'removed' => '%s suprimida',
+		'update_all' => array(
+			'failed_list' => 'Failed extensions: %s',	// TODO
+			'none' => 'All extensions are up to date',	// TODO
+			'ok' => '%d extensions updated successfully',	// TODO
+			'partial' => '%d extensions updated, %d failed',	// TODO
+		),
+		'update_failed' => '%s update failed',	// TODO
+		'updated' => '%s has been updated successfully',	// TODO
 	),
 	'import_export' => array(
 		'export_no_zip_extension' => 'L’extension ZIP es pas presenta sul servidor. Volgatz ensajar d’exportar los fichièrs un per un.',

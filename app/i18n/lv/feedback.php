@@ -50,11 +50,22 @@ return array(
 			'ko' => '%s nevar būt ieslēgts. <a href="%s">Pārbaudiet FreshRSS žurnālu</a> priekš papildu informācijas.',
 			'ok' => '%s ir tagad ieslēgts',
 		),
-		'invalid_view_mode' => 'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
+		'install_failed' => '%s installation failed',	// TODO
+		'install_failed_rate_limited_generic' => 'Installation of %s failed due to rate limiting. Please try again later.',	// TODO
+		'installed' => '%s has been installed successfully',	// TODO
+		'invalid_view_mode' => 'Invalid view mode “%s”! Fall back to “Normal view”.',	// DIRTY
 		'no_access' => 'Jums nav piekļuves %s',
 		'not_enabled' => '%s nav ieslēgts',
 		'not_found' => '%s nēeksistē',
 		'removed' => '%s izņemts',
+		'update_all' => array(
+			'failed_list' => 'Failed extensions: %s',	// TODO
+			'none' => 'All extensions are up to date',	// TODO
+			'ok' => '%d extensions updated successfully',	// TODO
+			'partial' => '%d extensions updated, %d failed',	// TODO
+		),
+		'update_failed' => '%s update failed',	// TODO
+		'updated' => '%s has been updated successfully',	// TODO
 	),
 	'import_export' => array(
 		'export_no_zip_extension' => 'Jūsu serverī nav ZIP paplašinājuma. Lūdzu, mēģiniet eksportēt failus pa vienam.',

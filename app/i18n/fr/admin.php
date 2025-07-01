@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Vérifiez les logs pour déterminer pourquoi la liste des extensions est vide.',
 		'enabled' => 'Activée',
 		'latest' => 'Installée',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => 'Nom',
 		'no_configure_view' => 'Cette extension n’a pas à être configurée',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => 'Extensions système (contrôlées par l’administrateur)',
 		),
 		'title' => 'Extensions',	// IGNORE
-		'update' => 'Mise à jour disponible',
 		'user' => 'Extensions utilisateur',
 		'version' => 'Version',	// IGNORE
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => 'Statistiques',

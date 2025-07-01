@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => '拡張機能リストが表示されない原因を特定するために、ログを確認してください。',
 		'enabled' => '有効',
 		'latest' => 'インストール済み',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => '名前',
 		'no_configure_view' => 'この拡張機能は設定できません.',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => 'システムの拡張機能 (あなたは権限を所持していません',
 		),
 		'title' => '拡張機能',
-		'update' => 'アップデート可能',
 		'user' => 'ユーザー拡張機能',
 		'version' => 'バージョン',
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => '統計',

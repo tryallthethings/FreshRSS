@@ -50,11 +50,22 @@ return array(
 			'ko' => '%s kann nicht aktiviert werden. Für Details <a href="%s">prüfen Sie die FreshRSS-Protokolle</a>.',
 			'ok' => '%s ist jetzt aktiviert',
 		),
+		'install_failed' => '%s installation failed',	// TODO
+		'install_failed_rate_limited_generic' => 'Installation of %s failed due to rate limiting. Please try again later.',	// TODO
+		'installed' => '%s has been installed successfully',	// TODO
 		'invalid_view_mode' => 'Ungültige Standard-Ansicht %s gefunden. Setze Standard-Ansicht auf Normale Ansicht zurück.',
 		'no_access' => 'Sie haben keinen Zugang zu %s',
 		'not_enabled' => '%s ist noch nicht aktiviert',
 		'not_found' => '%s existiert nicht',
 		'removed' => '%s wurde gelöscht',
+		'update_all' => array(
+			'failed_list' => 'Failed extensions: %s',	// TODO
+			'none' => 'All extensions are up to date',	// TODO
+			'ok' => '%d extensions updated successfully',	// TODO
+			'partial' => '%d extensions updated, %d failed',	// TODO
+		),
+		'update_failed' => '%s update failed',	// TODO
+		'updated' => '%s has been updated successfully',	// TODO
 	),
 	'import_export' => array(
 		'export_no_zip_extension' => 'Die ZIP-Erweiterung fehlt auf Ihrem Server. Bitte versuchen Sie die Dateien eine nach der anderen zu exportieren.',

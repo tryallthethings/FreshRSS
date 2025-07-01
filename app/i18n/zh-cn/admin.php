@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Check the logs to determine the reason behind the empty extension list.',	// TODO
 		'enabled' => '已启用',
 		'latest' => '已安装',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => '名称',
 		'no_configure_view' => '此扩展无法配置。',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => '系统扩展（你没有所需权限）',
 		),
 		'title' => '扩展',
-		'update' => '更新可用',
 		'user' => '用户扩展',
 		'version' => '版本',
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => '统计数据',

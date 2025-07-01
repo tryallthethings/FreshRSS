@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Check the logs to determine the reason behind the empty extension list.',	// TODO
 		'enabled' => ' فعال است',
 		'latest' => ' نصب شده است',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => ' نام',
 		'no_configure_view' => ' این برنامه افزودنی قابل پیکربندی نیست.',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => ' پسوند سیستم (شما مجوزهای لازم را ندارید)',
 		),
 		'title' => ' برنامه های افزودنی',
-		'update' => ' به روز رسانی موجود است',
 		'user' => ' پسوندهای کاربر',
 		'version' => ' نسخه',
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => 'آمار',

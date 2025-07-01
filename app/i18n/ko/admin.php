@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Check the logs to determine the reason behind the empty extension list.',	// TODO
 		'enabled' => '활성화됨',
 		'latest' => '설치됨',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => '이름',
 		'no_configure_view' => '이 확장 기능은 설정이 없습니다.',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => '시스템 확장 기능 (이 확장 기능에 대한 권한이 없습니다)',
 		),
 		'title' => '확장 기능',
-		'update' => '업데이트 있음',
 		'user' => '사용자 확장 기능',
 		'version' => '버전',
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => '통계',

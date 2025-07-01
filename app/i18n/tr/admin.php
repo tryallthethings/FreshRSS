@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Eklenti listesinin neden boş olduğunu belirlemek için günlükleri kontrol edin.',
 		'enabled' => 'Etkin',
 		'latest' => 'Yüklü',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => 'İsim',
 		'no_configure_view' => 'Bu eklenti yapılandırılamaz.',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => 'Sistem eklentisi (gerekli izinlere sahip değilsiniz)',
 		),
 		'title' => 'Eklentiler',
-		'update' => 'Güncelleme mevcut',
 		'user' => 'Kullanıcı eklentileri',
 		'version' => 'Sürüm',
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => 'İstatistikler',

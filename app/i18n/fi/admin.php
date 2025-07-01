@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Voit tarkistaa lokeista, miksi laajennusluettelo on tyhjä.',
 		'enabled' => 'Käytössä',
 		'latest' => 'Asennettu',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => 'Nimi',
 		'no_configure_view' => 'Tätä laajennusta ei voi määrittää.',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => 'Järjestelmälaajennus (sinulla ei ole tarvittavia käyttöoikeuksia)',
 		),
 		'title' => 'Laajennukset',
-		'update' => 'Päivitys saatavilla',
 		'user' => 'Käyttäjän laajennukset',
 		'version' => 'Versio',
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => 'Tilastot',

@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Check the logs to determine the reason behind the empty extension list.',	// TODO
 		'enabled' => 'Activada',
 		'latest' => 'Installada',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => 'Nom',
 		'no_configure_view' => 'Aquesta extension se pòt pas configurar.',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => 'Extensions sistèma (contrarotlat per l’administrator)',
 		),
 		'title' => 'Extensions',	// IGNORE
-		'update' => 'Mesa a jorn disponibla',
 		'user' => 'Extensions utilizaire',
 		'version' => 'Version',	// IGNORE
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => 'Estatisticas',

@@ -50,11 +50,22 @@ return array(
 			'ko' => ' %s را نمی توان فعال کرد. برای جزئیات <a href="%s">گزارش‌های FreshRSS</a> را بررسی کنید.',
 			'ok' => ' %s اکنون فعال است',
 		),
-		'invalid_view_mode' => 'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
+		'install_failed' => '%s installation failed',	// TODO
+		'install_failed_rate_limited_generic' => 'Installation of %s failed due to rate limiting. Please try again later.',	// TODO
+		'installed' => '%s has been installed successfully',	// TODO
+		'invalid_view_mode' => 'Invalid view mode “%s”! Fall back to “Normal view”.',	// DIRTY
 		'no_access' => ' شما به %s دسترسی ندارید',
 		'not_enabled' => '%s فعال نیست',
 		'not_found' => '%s وجود ندارد',
 		'removed' => '%s حذف شد',
+		'update_all' => array(
+			'failed_list' => 'Failed extensions: %s',	// TODO
+			'none' => 'All extensions are up to date',	// TODO
+			'ok' => '%d extensions updated successfully',	// TODO
+			'partial' => '%d extensions updated, %d failed',	// TODO
+		),
+		'update_failed' => '%s update failed',	// TODO
+		'updated' => '%s has been updated successfully',	// TODO
 	),
 	'import_export' => array(
 		'export_no_zip_extension' => ' پسوند ZIP در سرور شما وجود ندارد. لطفا سعی کنید فایل ها را یکی یکی صادر کنید.',

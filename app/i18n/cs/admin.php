@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Check the logs to determine the reason behind the empty extension list.',	// TODO
 		'enabled' => 'Povoleno',
 		'latest' => 'Nainstalováno',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => 'Název',
 		'no_configure_view' => 'Toto rozšíření nemá žádná nastavení.',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => 'Systémová rozšíření (nemáte požadovaná oprávnění)',
 		),
 		'title' => 'Rozšíření',
-		'update' => 'Dostupná aktualizace',
 		'user' => 'Uživatelská rozšíření',
 		'version' => 'Verze',
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => 'Statistika',

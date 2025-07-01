@@ -119,15 +119,15 @@ return array(
 		'empty_list_help' => 'Check the logs to determine the reason behind the empty extension list.',	// TODO
 		'enabled' => 'Enabled',
 		'latest' => 'Installed',
-		'name' => 'Name',
 		'manage' => array(
 			'actions' => 'Actions',
-			'install_update' => 'Update',
 			'install_extension' => 'Install',
+			'install_update' => 'Update',
 			'update_available_detailed' => 'Version %s installed, update to %s available',
 			'update_count' => 'Update %d extension(s)',
 			'view_release' => 'View release',
 		),
+		'name' => 'Name',
 		'no_configure_view' => 'This extension cannot be configured.',
 		'system' => array(
 			'_' => 'System extensions',

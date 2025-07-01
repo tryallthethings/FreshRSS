@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Ellenőrizd a naplókat, hogy megállapítsd az üres bővítménylista mögött meghúzódó okot.',
 		'enabled' => 'Bekapcsolva',
 		'latest' => 'Telepítve',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => 'Név',
 		'no_configure_view' => 'Ezt a kiegészítőt nem lehet konfigurálni.',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => 'Rendszer kiegészítők (felhasználó nem jogosult a módosításhoz)',
 		),
 		'title' => 'Kiegészítők',
-		'update' => 'Frissítés elérhető',
 		'user' => 'Felhasználói kiegészítők',
 		'version' => 'Verzió',
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => 'Statisztika',

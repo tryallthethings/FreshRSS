@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Controllare i log per determinare il motivo della lista estensioni vuota.',
 		'enabled' => 'Abilitata',
 		'latest' => 'Installato',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => 'Nome',
 		'no_configure_view' => 'Questa estensioni non può essere configurata.',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => 'Estensione di sistema (non hai i permessi su questo tipo)',
 		),
 		'title' => 'Estensioni',
-		'update' => 'Aggiornamento disponibile',
 		'user' => 'Estensioni utente',
 		'version' => 'Versione',
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => 'Statistiche',

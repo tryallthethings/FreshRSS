@@ -50,11 +50,22 @@ return array(
 			'ko' => '%sは有効にできません。 <a href="%s">FreshRSS のログを確認してください</a> 詳細が表示されます。',
 			'ok' => '%sは有効にされています。',
 		),
-		'invalid_view_mode' => 'Invalid view mode “%s”! Fall back to “Normal view”.',	// TODO
+		'install_failed' => '%s installation failed',	// TODO
+		'install_failed_rate_limited_generic' => 'Installation of %s failed due to rate limiting. Please try again later.',	// TODO
+		'installed' => '%s has been installed successfully',	// TODO
+		'invalid_view_mode' => 'Invalid view mode “%s”! Fall back to “Normal view”.',	// DIRTY
 		'no_access' => 'あなたは%sにアクセスする権限がありません',
 		'not_enabled' => '%sは有効にされていません',
 		'not_found' => '%sは存在しません',
 		'removed' => '%sは消去されました',
+		'update_all' => array(
+			'failed_list' => 'Failed extensions: %s',	// TODO
+			'none' => 'All extensions are up to date',	// TODO
+			'ok' => '%d extensions updated successfully',	// TODO
+			'partial' => '%d extensions updated, %d failed',	// TODO
+		),
+		'update_failed' => '%s update failed',	// TODO
+		'updated' => '%s has been updated successfully',	// TODO
 	),
 	'import_export' => array(
 		'export_no_zip_extension' => 'ZIP 拡張は現在あなたのサーバーに存在しません。一つずつファイルをエクスポートしてみてください。',

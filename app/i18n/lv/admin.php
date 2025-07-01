@@ -119,6 +119,14 @@ return array(
 		'empty_list_help' => 'Check the logs to determine the reason behind the empty extension list.',	// TODO
 		'enabled' => 'Ieslēgts',
 		'latest' => 'Instalēts',
+		'manage' => array(
+			'actions' => 'Actions',	// TODO
+			'install_extension' => 'Install',	// TODO
+			'install_update' => 'Update',	// TODO
+			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
+			'update_count' => 'Update %d extension(s)',	// TODO
+			'view_release' => 'View release',	// TODO
+		),
 		'name' => 'Vārds',
 		'no_configure_view' => 'Šo paplašinājumu nevar konfigurēt.',
 		'system' => array(
@@ -126,9 +134,9 @@ return array(
 			'no_rights' => 'Sistēmas paplašinājums (jums nav vajadzīgo atļauju)',
 		),
 		'title' => 'Paplašinājumi',
-		'update' => 'Pieejams atjauninājums',
 		'user' => 'Lietotāja paplašinājumi',
 		'version' => 'Versija',
+		'version_installed' => 'Version %s installed',	// TODO
 	),
 	'stats' => array(
 		'_' => 'Statistika',
