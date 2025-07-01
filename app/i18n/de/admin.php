@@ -120,12 +120,12 @@ return array(
 		'enabled' => 'Aktiviert',
 		'latest' => 'Installiert',
 		'manage' => array(
-			'actions' => 'Actions',	// TODO
-			'install_extension' => 'Install',	// TODO
-			'install_update' => 'Update',	// TODO
-			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
-			'update_count' => 'Update %d extension(s)',	// TODO
-			'view_release' => 'View release',	// TODO
+			'actions' => 'Aktionnen',
+			'install_extension' => 'Installieren',
+			'install_update' => 'Aktualisieren',
+			'update_available_detailed' => 'Version %s ist installiert, Version %s ist verfügbar',
+			'update_count' => 'Aktualisiere %d Erweiterung(en)',
+			'view_release' => 'Release anzeigen',
 		),
 		'name' => 'Name',	// IGNORE
 		'no_configure_view' => 'Diese Erweiterung kann nicht konfiguriert werden.',
@@ -136,7 +136,7 @@ return array(
 		'title' => 'Erweiterungen',
 		'user' => 'Benutzer-Erweiterungen',
 		'version' => 'Version',	// IGNORE
-		'version_installed' => 'Version %s installed',	// TODO
+		'version_installed' => 'Version %s installiert',
 	),
 	'stats' => array(
 		'_' => 'Statistiken',
