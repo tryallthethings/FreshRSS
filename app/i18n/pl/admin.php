@@ -120,12 +120,12 @@ return array(
 		'enabled' => 'Włączone',
 		'latest' => 'Zainstalowane',
 		'manage' => array(
-			'actions' => 'Actions',	// TODO
-			'install_extension' => 'Install',	// TODO
-			'install_update' => 'Update',	// TODO
-			'update_available_detailed' => 'Version %s installed, update to %s available',	// TODO
-			'update_count' => 'Update %d extension(s)',	// TODO
-			'view_release' => 'View release',	// TODO
+			'actions' => 'Akcje',
+			'install_extension' => 'Zainstaluj',
+			'install_update' => 'Zaktualizuj',
+			'update_available_detailed' => 'Zainstalowana jest wersja %s, dostępna aktualizacja do wersji %s',
+			'update_count' => 'Zaktualizuj %d rozszerzeń',
+			'view_release' => 'Zobacz wydanie',
 		),
 		'name' => 'Nazwa',
 		'no_configure_view' => 'To rozszerzenie nie jest konfigurowalne.',
